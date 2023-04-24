@@ -1,12 +1,19 @@
 # Titre : 1.2clean_data_chiro
-# But : Filtrer les r??sultats de Tadarida, on ne veut garder que les donn??es chiropt??res
+# But : Filtrer les resultats de Tadarida, on ne veut garder que les donnees chiropteres
 # Auteur : Emilie
 # Date : 21/04/2023
 
-setwd("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees/Chiropteres")
 
-a_192021 = read.csv("export_192021.csv", header = TRUE)
+# Library -----------------------------------------------------------------
 
+library(tidyverse)
+
+
+# Chargement donnees ------------------------------------------------------
+
+setwd("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees/2.Donnees_intermediaire/Chiroptères")
+
+data_brute = readRDS("export_fusion.rds")
 
 # Nettoyage  --------------------------------------------------------------
 

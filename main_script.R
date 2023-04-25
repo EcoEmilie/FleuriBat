@@ -5,12 +5,14 @@
 
 rm(list=ls())
 # Directory ---------------------------------------------------------------
-setwd("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R")
+setwd("~/Documents sur ordi/Github/FleuriBat")
 # Packages ----------------------------------------------------------------
-source("Script/Install_package.R")
+source("0.Install_package.R")
 
 # Construction des données ------------------------------------------------
-source("Script/fusion_export_tadarida.R")
+source("1.1fusion_export_tadarida.R")
+source("1.2modif_site.R")
+source("1.2clean_data_chiro.R")
 
 ## Chiroptères -------------------------------------------------------------
 

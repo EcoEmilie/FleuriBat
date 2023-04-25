@@ -18,18 +18,23 @@ library(readr)#pour le fichier bizarre
 
 # Data path  --------------------------------------------------------------
 folderpath = paste("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees/1.Donnees_sources/Chiroptères/Tadarida")
-AnneeExport="export_2019"
-filepath=file.path(folderpath,AnneeExport)
+finalpath = paste("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees/2.Donnees_intermediaire")
+AnneeExport_2019="export_2019"
+AnneeExport_2020 = "export_2020"
+AnneeExport_2021 = "export_2021"
+filepath_2019=file.path(folderpath,AnneeExport_2019)
+filepath_2020=file.path(folderpath,AnneeExport_2020)
+filepath_2021=file.path(folderpath,AnneeExport_2021)
 
-## Chargement de export 2019 -----------------------------------------------
+# Chargement de export 2019 -----------------------------------------------
 
-listP <- unique(list.files(path=filepath))#lister le nom des fichers dans le dossier 
+listP <- unique(list.files(path=filepath_2019))#lister le nom des fichers dans le dossier 
 
 tabz<-NULL #Créarion d'une data pour acceuillir les données 
 
 for(p in listP) {
   print(p)
-  a<-read.csv(file.path(filepath,p), sep = ";", header = TRUE)
+  a<-read.csv(file.path(filepath_2019,p), sep = ";", header = TRUE)
   tabz<-bind_rows(tabz,a,.id = "source")
 }
 
@@ -44,21 +49,17 @@ a2019 = export2019 %>%
   mutate(Num_passag = str_replace(Num_passag,"Pass1", "PASS1")) %>% 
   mutate(Num_passag = str_replace(Num_passag,"Pass2", "PASS2"))
 
-# Export 2020 -------------------------------------------------------------
+# Chargement de export 2020 -----------------------------------------------
 
-## Chargement de export 2020 -----------------------------------------------
+# Sys.setlocale("LC_ALL", "C")
 
-setwd(paste(filepath ,"export_2020", sep="/"))
-
-Sys.setlocale("LC_ALL", "C")
-
-listP <- unique(list.files())
+listP <- unique(list.files(path=filepath_2020))
 
 taby<-NULL
 
 for(p in listP) {
   print(p)
-  a<-read.csv(p,sep=";", fileEncoding="latin1", header = TRUE)
+  a<-read.csv(file.path(filepath_2020,p),sep=";", fileEncoding="latin1", header = TRUE)
   taby<-bind_rows(taby,a,.id = "source")
 }
 
@@ -72,20 +73,15 @@ a2020 = export2020 %>%
   mutate(Num_passag = str_replace(Num_passag,"Pass1", "PASS1")) %>% 
   mutate(Num_passag = str_replace(Num_passag,"Pass2", "PASS2"))
 
+# Chargement de export 2021 -----------------------------------------------
 
-# Export 2021 -------------------------------------------------------------
-
-## Chargement de export 2021 -----------------------------------------------
-
-setwd(paste(filepath ,"export_2021", sep="/"))
-
-listP <- unique(list.files())
+listP <- unique(list.files(path=filepath_2021))
 
 tabx<-NULL
 
 for(p in listP) {
   print(p)
-  a<-read.csv(p,sep=";")
+  a<-read.csv(file.path(filepath_2021,p),sep=";",header = TRUE)
   tabx<-bind_rows(tabx,a,.id = "source")
 }
 
@@ -111,6 +107,5 @@ export19_20_21 = bind_rows(a2019,a2020,a2021,.id = "source") %>%
 
 
 # Ecriture ----------------------------------------------------------------
-setwd("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees/2.Donnees_intermediaire/Chiroptères")
-saveRDS(export19_20_21, file = "export_fusion.rds")
+saveRDS(export19_20_21, file = file.path(finalpath, "export_fusion.rds"))
 

@@ -16,23 +16,20 @@ library(tidyr)
 library(stringr)#manipulation de texte
 library(readr)#pour le fichier bizarre
 
-# Directory  --------------------------------------------------------------
-
-setwd("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees/1.Donnees_sources/Chiroptères/Tadarida")
-filepath = paste("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees/1.Donnees_sources/Chiroptères/Tadarida")
-# Export 2019  ------------------------------------------------------------
+# Data path  --------------------------------------------------------------
+folderpath = paste("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees/1.Donnees_sources/Chiroptères/Tadarida")
+AnneeExport="export_2019"
+filepath=file.path(folderpath,AnneeExport)
 
 ## Chargement de export 2019 -----------------------------------------------
 
-setwd(paste(filepath ,"export_2019", sep="/"))
-
-listP <- unique(list.files())#lister le nom des fichers dans le dossier 
+listP <- unique(list.files(path=filepath))#lister le nom des fichers dans le dossier 
 
 tabz<-NULL #Créarion d'une data pour acceuillir les données 
 
 for(p in listP) {
   print(p)
-  a<-read.csv(p, sep = ";", header = TRUE)
+  a<-read.csv(file.path(filepath,p), sep = ";", header = TRUE)
   tabz<-bind_rows(tabz,a,.id = "source")
 }
 
@@ -111,12 +108,6 @@ export19_20_21 = bind_rows(a2019,a2020,a2021,.id = "source") %>%
   filter(!Carre_Point_vigiechiro %in% c("Car280117_Z1","Car280389_Z2", "Car280449_Z2","Car780267_Z1","Car780286_Z1"))%>%
   separate(col="date",into=c("date","heure","autre"),sep="_") %>% 
   mutate(date=ymd(date)) 
-
-# Verification ------------------------------------------------------------
-
-sum <- export19_20_21 %>% 
-  select(date,Carre_Point_vigiechiro) %>%  #### 5 sites avec dates bizarres (4 exclos dans le lot)
-  distinct()
 
 
 # Ecriture ----------------------------------------------------------------

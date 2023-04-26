@@ -1,22 +1,31 @@
+# Titre : 1.1.2.EspecesVerifieesParSites
+# But : match avec les validation d'amandine
+# Auteur : Camille Bernery 
+# Modification : Emilie PEN 
+# Date : 25/04/2023
+
+
 ############DONNEES SYNTHESE D AMANDINE : Tri des espèces par site####################
 rm(list = ls())
 getwd()
 ###mise en forme des donnéés d'amandine pour qu'elles soient homegenes
-setwd("D:/1_Postdoc_CHIRO/SCRIPT_R/Trophic_chiro/Synthese_amandine_enforme/")
+FolderPath = paste("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees/1.Donnees_sources/Chiroptères/Data_Chiro_Filtrees")
+FinalPath = paste("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees/2.Donnees_intermediaire")
 
-Bande2019<-read.csv2("Bande2019.csv", na.strings=c("","NA"))
-Temoin2019<-read.csv2("Temoin2019.csv", na.strings=c("","NA"))
+#Probléme avec les accents 
+Bande2019<-read.csv2(file = file.path(FolderPath,"Tableau_Amandine_utilises","Bande2019.csv"), na.strings=c("","NA"),fileEncoding = "Latin1", check.names = F)
+Temoin2019<-read.csv2(file = file.path(FolderPath,"Tableau_Amandine_utilises","Temoin2019.csv"), na.strings=c("","NA"),fileEncoding = "Latin1", check.names = F)
 
-BandePass12020<-read.csv2("BandePass12020.csv", na.strings=c("","NA"))
-BandePass22020<-read.csv2("BandePass22020.csv", na.strings=c("","NA"))
-TemoinPass12020<-read.csv2("TemoinPass12020.csv",na.strings=c("","NA"))
-TemoinPass22020<-read.csv2("TemoinPass22020.csv", na.strings=c("","NA"))
+BandePass12020<-read.csv2(file = file.path(FolderPath,"Tableau_Amandine_utilises","BandePass12020.csv"),na.strings=c("","NA"),fileEncoding = "Latin1", check.names = F)
+BandePass22020<-read.csv2(file = file.path(FolderPath,"Tableau_Amandine_utilises","BandePass22020.csv"), na.strings=c("","NA"),fileEncoding = "Latin1", check.names = F)
+TemoinPass12020<-read.csv2(file = file.path(FolderPath,"Tableau_Amandine_utilises","TemoinPass12020.csv"),na.strings=c("","NA"),fileEncoding = "Latin1", check.names = F)
+TemoinPass22020<-read.csv2(file = file.path(FolderPath,"Tableau_Amandine_utilises","TemoinPass22020.csv"), na.strings=c("","NA"),fileEncoding = "Latin1", check.names = F)
 
-Pass12021<-read.csv2("Pass12021.csv", na.strings=c("","NA"))
-Pass22021<-read.csv2("Pass22021.csv",na.strings=c("","NA"))
+Pass12021<-read.csv2(file = file.path(FolderPath,"Tableau_Amandine_utilises","Pass12021.csv"), na.strings=c("","NA"),fileEncoding = "Latin1", check.names = F)
+Pass22021<-read.csv2(file = file.path(FolderPath,"Tableau_Amandine_utilises","Pass22021.csv"), na.strings=c("","NA"),fileEncoding = "Latin1", check.names = F)
 
 ###select seulement les colonnes avec des espèces certaienes
-Bande2019ok<-Bande2019 %>% select(c('X': "Esp.ce.certaine"))
+Bande2019ok <- Bande2019 %>% mutate_all(str_replace_all("X", "Esp.ce.certaine"))
 Temoin2019ok<-Temoin2019 %>% select(c('X': "Esp.ce.certaine"))
 
 BandePass12020ok<-BandePass12020 %>% select(c('Site': "Esp.ce.certaine"))

@@ -5,6 +5,10 @@
 # Date : 25/04/2023
 
 
+# Library  ----------------------------------------------------------------
+
+library(tidyverse)
+
 ############DONNEES SYNTHESE D AMANDINE : Tri des espèces par site####################
 rm(list = ls())
 getwd()
@@ -25,8 +29,8 @@ Pass12021<-read.csv2(file = file.path(FolderPath,"Tableau_Amandine_utilises","Pa
 Pass22021<-read.csv2(file = file.path(FolderPath,"Tableau_Amandine_utilises","Pass22021.csv"), na.strings=c("","NA"),fileEncoding = "Latin1", check.names = F)
 
 ###select seulement les colonnes avec des espèces certaienes
-Bande2019ok <- Bande2019 %>% mutate_all(str_replace_all("X", "Esp.ce.certaine"))
-Temoin2019ok<-Temoin2019 %>% select(c('X': "Esp.ce.certaine"))
+Bande2019ok <- Bande2019 %>% mutate_all(str_replace_all,"X", "Esp.ce.certaine")
+Temoin2019ok<-Temoin2019 %>% mutate_all(funs(str_replace(.,"X", "Esp.ce.certaine")))
 
 BandePass12020ok<-BandePass12020 %>% select(c('Site': "Esp.ce.certaine"))
 BandePass22020ok<-BandePass22020 %>% select(c('Site': "Esp.ce.certaine"))

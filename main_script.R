@@ -13,6 +13,7 @@ source("0.Install_package.R")
 source("1.1fusion_export_tadarida.R")
 source("1.2modif_site.R")
 source("1.3clean_data_chiro.R")
+source("1.4variable_nuit.R")
 
 ## Chiroptères -------------------------------------------------------------
 

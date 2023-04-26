@@ -1,9 +1,9 @@
-# Titre : 1.3VariableNuit
+# Titre : 1.4VariableNuit
 # But : Création de la variable Nuit
 # Auteur : Emilie
 # Date : 25/04/2023
 
-
+rm(list=ls())
 # Library ----------------------------------------------------------------
 
 library(tidyverse)
@@ -12,8 +12,9 @@ library(lubridate)
 # Chargement data ---------------------------------------------------------
 
 Folderpath = paste("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees")
+FinalPath = paste("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees/2.Donnees_intermediaire")
 data_chiro = readRDS(file = file.path(Folderpath,"2.Donnees_intermediaire","data_chiro.rds"))
-data_site = read.csv(file = file.path(Folderpath,"1.Donnees_sources", "Chiroptères", "Sites","site_chiro_19_20_21.csv"), sep = ";", header = TRUE)
+data_site = readRDS(file = file.path(Folderpath,"2.Donnees_intermediaire","data_site.rds"))
 
 ## restructuration de la date et l'heure ----
 data_chiro1= data_chiro %>% 
@@ -45,5 +46,10 @@ data_chiro_nuit = left_join(data_chiro,data_nuit) %>%
   relocate(Num_Nuit, .after = Num_passag)
 
 data_site_nuit = left_join(data_site, data_nuit)
+
+# Ecriture ----------------------------------------------------------------
+
+saveRDS(data_chiro_nuit, file = file.path(FinalPath, "data_chiro_nuit.rds"))
+saveRDS(data_site_nuit, file = file.path(FinalPath, "data_site_nuit.rds"))
   
   

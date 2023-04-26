@@ -21,7 +21,7 @@ Folderpath = paste("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_do
 # Modification ------------------------------------------------------------
 
 data_site = read.csv(file = file.path(Folderpath,"1.Donnees_sources", "Chiroptères", "Sites","site_chiro_19_20_21.csv"), sep = ";", header = TRUE) %>% 
-  rename(Commune = X...Commune) %>% #La variable commune est renommé 
+  # rename(Commune = X...Commune) %>% #La variable commune est renommé 
   mutate(Commune = str_to_upper(Commune)) %>% 
   mutate(Commune = str_replace_all(Commune," ","_"),
          Commune = str_replace(Commune, "’", "_"),

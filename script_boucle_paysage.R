@@ -95,10 +95,11 @@ data_haie = st_read(dsn = file.path(Folderpath,FolderCarto,"data_occupation_haie
 
 density_haie= c()
 
+### Route -------------------------------------------------------------
+
+data_route = st_read(dsn = file.path(Folderpath,FolderCarto,"data_route_total.gpkg"))
+
 ### Bande -------------------------------------------------------------
-
-
-
 
 
 ### RPG ----------------------------------------------------
@@ -329,7 +330,13 @@ for (i in 1:nrow(data_site)){
     ## Densité de haie ----
     q = st_intersection(data_haie, b) %>%
       mutate(longueur = st_length(geom))
-    haie_density = c(ifelse(nrow(m) == 0, 0,(sum(q$longueur)/buffer_area) * 10000))
+    haie_density = c(ifelse(nrow(q) == 0, 0,(sum(q$longueur)/buffer_area) * 10000))
+    
+    ##Densité de route----
+    r = st_intersection(data_route, b) %>%
+      mutate(longueur = st_length(geom))
+    route_density = c(ifelse(nrow(r) == 0, 0,(sum(q$longueur)/buffer_area) * 10000))
+    
 
     ##Diversité d'élément semi-naturel/naturel ----
     
@@ -339,7 +346,7 @@ for (i in 1:nrow(data_site)){
     
     ##Taille moyenne des parcelles ----
     
-    ##Densité de route----
+    
     
     ##Luminosité ----
 
@@ -365,6 +372,7 @@ for (i in 1:nrow(data_site)){
                         area_praiperm,
                         area_prairota,
                         haie_density,
+                        route_density,
                         Shannon_cultu = Shannon_cultu$value)
     
     ## !!! collage ligne par ligne----
@@ -374,6 +382,7 @@ for (i in 1:nrow(data_site)){
   }
 print(i)
 }
+
 
 
 

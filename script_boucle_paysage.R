@@ -114,7 +114,7 @@ RPG_2020 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_RPG_2020.gpkg
 RPG_2021 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_RPG_2021.gpkg"))%>% 
   st_transform(2154)
 
-#Diversité raster
+##Diversité raster
 #2019
 Div_2019 = rast( file.path(Folderpath,FolderCarto,"RASTERS/RPG_2019_DIV.tif"))
 
@@ -126,7 +126,58 @@ Div_2021 = rast(file.path(Folderpath,FolderCarto,"RASTERS/RPG_2021_DIV.tif"))
 
 i = data_frame()
 
-#Prairie 
+##Prairie ----
+#2019 
+prairie_2019 = RPG_2019 %>% 
+  filter(CODE_CULTU == c("PPH","PRL","PTR"))
+
+#2020 
+prairie_2020 = RPG_2020 %>% 
+  filter(CODE_CULTU == c("PPH","PRL","PTR"))
+
+#2021 
+prairie_2021 = RPG_2021 %>% 
+  filter(CODE_CULTU == c("PPH","PRL","PTR"))
+
+#prairie permanente
+#2019 
+praiperm_2019 = RPG_2019 %>% 
+  filter(CODE_CULTU == c("PPH"))
+
+#2020 
+praiperm_2020 = RPG_2020 %>% 
+  filter(CODE_CULTU == c("PPH"))
+
+#2021 
+praiperm_2021 = RPG_2021 %>% 
+  filter(CODE_CULTU == c("PPH"))
+
+#prairie temporaire
+#2019 
+praitemp_2019 = RPG_2019 %>% 
+  filter(CODE_CULTU == c("PTR"))
+
+#2020 
+praitemp_2020 = RPG_2020 %>% 
+  filter(CODE_CULTU == c("PTR"))
+
+#2021 
+praitemp_2021 = RPG_2021 %>% 
+  filter(CODE_CULTU == c("PTR"))
+
+#prairie rotation longue
+#2019 
+prairota_2019 = RPG_2019 %>% 
+  filter(CODE_CULTU == c("PRL"))
+
+#2020 
+prairota_2020 = RPG_2020 %>% 
+  filter(CODE_CULTU == c("PRL"))
+
+#2021 
+prairota_2021 = RPG_2021 %>% 
+  filter(CODE_CULTU == c("PRL"))
+
 
 
 ### RPG BIO -----------------------------------------------------------------
@@ -242,9 +293,38 @@ for (i in 1:nrow(data_site)){
       distinct()
     area_agri = c(ifelse(nrow(l) == 0, 0, sum(l$area)))
     
-    ## Surface de prairie permanente
+    ## Surface de prairie total ----
     
+    m = if(b$year == 2019){st_intersection(prairie_2019 , b)}else if(b$year==2020){st_intersection(prairie_2020 , b)} else{st_intersection(prairie_2021 , b)}
+    m = m  %>% 
+      mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
+      distinct()
+    area_prairie = c(ifelse(nrow(m) == 0, 0, sum(m$area)))
     
+    ## Surface de prairie permanente ----
+    
+    n = if(b$year == 2019){st_intersection(praiperm_2019 , b)}else if(b$year==2020){st_intersection(praiperm_2020 , b)} else{st_intersection(praiperm_2021 , b)}
+    n = n  %>% 
+      mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
+      distinct()
+    area_praiperm = c(ifelse(nrow(n) == 0, 0, sum(m$area)))
+    
+    ## Surface de prairie temporaire ----
+    
+    o = if(b$year == 2019){st_intersection(praitemp_2019 , b)}else if(b$year==2020){st_intersection(praitemp_2020 , b)} else{st_intersection(praitemp_2021 , b)}
+    o = o  %>% 
+      mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
+      distinct()
+    area_praitemp = c(ifelse(nrow(o) == 0, 0, sum(m$area)))
+    
+    ## Surface de prairie rotation longue ----
+    
+    p = if(b$year == 2019){st_intersection(prairota_2019 , b)}else if(b$year==2020){st_intersection(prairota_2020 , b)} else{st_intersection(prairota_2021 , b)}
+    p = p  %>% 
+      mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
+      distinct()
+    area_prairota = c(ifelse(nrow(p) == 0, 0, sum(m$area)))
+                      
     ##Densité de haie ----
     # k = mask(crop(raster_haie, b_v),b_v)
     # dens_haie = lsm_c_ed(k, FALSE, 8)#pas sur des directions 
@@ -279,6 +359,9 @@ for (i in 1:nrow(data_site)){
                         area_habitation,
                         area_agri,
                         area_BIO,
+                        area_prairie,
+                        area_praiperm,
+                        area_prairota,
                         Shannon_cultu = Shannon_cultu$value)
     
     ## !!! collage ligne par ligne----

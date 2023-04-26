@@ -1,3 +1,5 @@
+rm(list=ls())
+
 #Ranger les données 
 library(dplyr)
 library(tidyr)
@@ -15,21 +17,19 @@ library(terra)#gestion de raster similaire au package `raster`
 library(landscapemetrics)#calcule de variable paysagère
 library(landscapetools)
 
-#Graphique 
-library(ggthemes)#palette de couleur pour ggplot 
-library(paletteer)#palette de couleur 
-library(ggplot2)#faire des graphiques 
-library(units)
-library(effects)#mettre les effets des varaibles dans un vecteur ?
-library(broom)#transformer les résultats d'un modèle en tableau rangé 
-library(ggeffects)#représentation des modèles 
 
 # Chargement des données --------------------------------------------------
 
-## Données sites -----------------------------------------------------------
-setwd("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees/Chiropteres")
 
-data_site= read.csv("donnees_site_Nuit.csv", header = TRUE, sep = ",", dec = ".") %>% #A changer avec données site
+## Dossier  ----------------------------------------------------------------
+
+Folderpath = paste("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees")
+FolderChiro = "Chiropteres"
+FolderCarto = "Carto"
+
+## Données sites -----------------------------------------------------------
+
+data_site= read.csv(file = file.path(Folderpath, FolderChiro, "donnees_site_Nuit.csv"), header = TRUE, sep = ",", dec = ".") %>% #A changer avec données site
   mutate(Commune = str_to_upper(Commune), year = as.factor(year)) %>% 
   mutate(Commune = str_replace_all(Commune,"_"," ")) %>% 
   unite(Mod_pass, Modalite_protocole, Num_passag, sep = "_", remove = FALSE)%>% 
@@ -41,9 +41,8 @@ data_site= read.csv("donnees_site_Nuit.csv", header = TRUE, sep = ",", dec = "."
 
 ### Plan d'eau  -------------------------------------------------------------
 
-setwd("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees/Carto")
 
-data_plan_eau = st_read("data_plan_eau_total.gpkg") %>% 
+data_plan_eau = st_read(dsn = file.path(Folderpath,FolderCarto,"data_plan_eau_total.gpkg")) %>% 
   st_transform(2154)
 
 
@@ -51,18 +50,16 @@ dist_eau =c()#Création d'un vecteur pour accueillir la variable
 
 ### Zone urbaine  -------------------------------------------------------------
 
-setwd("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees/Carto")
 
-data_habitation = st_read("data_occupation_bati_total.gpkg") %>% 
+data_habitation = st_read(dsn = file.path(Folderpath,FolderCarto,"data_occupation_bati_total.gpkg")) %>% 
   st_transform(2154)
 
 dist_habitation = c() 
 
 ### Forêt  -------------------------------------------------------------
 
-setwd("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees/Carto")
 
-data_foret = st_read("data_occupation_foret_total.gpkg") %>% 
+data_foret = st_read(dsn = file.path(Folderpath,FolderCarto,"data_occupation_foret_total.gpkg")) %>% 
   st_transform(2154)
 dist_foret = c() 
 
@@ -76,9 +73,8 @@ data_foret_conifere = data_foret %>%
 
 ### Cours d'eau  -------------------------------------------------------------
 
-setwd("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees/Carto")
 
-data_cours_eau = st_read("data_cours_eau_total.gpkg") %>% 
+data_cours_eau = st_read(dsn = file.path(Folderpath,FolderCarto,"data_cours_eau_total.gpkg")) %>% 
   st_transform(2154)
 
 dist_cours_eau = c()
@@ -93,10 +89,9 @@ area_ripi = c()
 
 ### Haie  -------------------------------------------------------------
 
-data_haie = st_read("data_occupation_haie_total.gpkg")
+data_haie = st_read(dsn = file.path(Folderpath,FolderCarto,"data_occupation_haie_total.gpkg"))
 
-setwd("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees/Carto/RASTERS")
-raster_haie = rast("raster_haie.tif")
+# raster_haie = rast("raster_haie.tif")
 
 
 ### Bande -------------------------------------------------------------
@@ -106,29 +101,28 @@ raster_haie = rast("raster_haie.tif")
 
 
 ### RPG ----------------------------------------------------
-setwd("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees/Carto")
 
 #2019 
-RPG_2019 = st_read("donnees_RPG_2019.gpkg") %>% 
+RPG_2019 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_RPG_2019.gpkg")) %>% 
   st_transform(2154)
 
 #2020 
-RPG_2020 = st_read("donnees_RPG_2020.gpkg")%>% 
+RPG_2020 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_RPG_2020.gpkg"))%>% 
   st_transform(2154)
 
 #2021
-RPG_2021 = st_read("donnees_RPG_2021.gpkg")%>% 
+RPG_2021 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_RPG_2021.gpkg"))%>% 
   st_transform(2154)
 
 #Diversité raster
 #2019
-Div_2019 = rast("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees/Carto/RASTERS/RPG_2019_DIV.tif")
+Div_2019 = rast( file.path(Folderpath,FolderCarto,"RASTERS/RPG_2019_DIV.tif"))
 
 #2020 
-Div_2020 = rast("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees/Carto/RASTERS/RPG_2020_DIV.tif")
+Div_2020 = rast(file.path(Folderpath,FolderCarto,"RASTERS/RPG_2020_DIV.tif"))
 
 #2021 
-Div_2021 = rast("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees/Carto/RASTERS/RPG_2021_DIV.tif")
+Div_2021 = rast(file.path(Folderpath,FolderCarto,"RASTERS/RPG_2021_DIV.tif"))
 
 i = data_frame()
 
@@ -136,18 +130,17 @@ i = data_frame()
 
 
 ### RPG BIO -----------------------------------------------------------------
-setwd("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees/Carto")
 
 #2019
-BIO_2019 = st_read("donnees_BIO_2019.gpkg")%>% 
+BIO_2019 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_BIO_2019.gpkg"))%>% 
   st_transform(2154)
 
 #2020
-BIO_2020 = st_read("donnees_BIO_2020.gpkg")%>% 
+BIO_2020 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_BIO_2020.gpkg"))%>% 
   st_transform(2154)
 
 #2021 
-BIO_2021 = st_read("donnees_BIO_2021.gpkg")%>% 
+BIO_2021 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_BIO_2021.gpkg"))%>% 
   st_transform(2154)
 
 # Calcule des variables paysagères  ---------------------------------------
@@ -296,27 +289,5 @@ for (i in 1:nrow(data_site)){
 print(i)
 }
 
-tmap_mode("view")
-buffer = tm_shape(b)+
-  tm_polygons(col = "red")
 
-ripisylve = tm_shape(c)+
-  tm_polygons(col = "green")
 
-cours_deau = tm_shape(st_intersection(data_cours_eau,b))+
-  tm_lines(col = "blue")
-
-habitation = tm_shape(g)+ 
-  tm_polygons(col = "red")
-
-point = #buffer  + 
-  #cours_deau+ 
-  habitation + 
-  tm_shape(l)+
-  tm_polygons(col ="ID_PARCEL")
-
-point
-tmap_mode("plot")
-
-lool = l %>% 
-  mutate(nul = (sum(st_area(g))* 100)/buffer_area)

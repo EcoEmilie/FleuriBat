@@ -93,6 +93,7 @@ data_haie = st_read(dsn = file.path(Folderpath,FolderCarto,"data_occupation_haie
 
 # raster_haie = rast("raster_haie.tif")
 
+density_haie= c()
 
 ### Bande -------------------------------------------------------------
 
@@ -126,7 +127,7 @@ Div_2021 = rast(file.path(Folderpath,FolderCarto,"RASTERS/RPG_2021_DIV.tif"))
 
 i = data_frame()
 
-##Prairie ----
+### Prairie ----
 #2019 
 prairie_2019 = RPG_2019 %>% 
   filter(CODE_CULTU == c("PPH","PRL","PTR"))
@@ -325,10 +326,11 @@ for (i in 1:nrow(data_site)){
       distinct()
     area_prairota = c(ifelse(nrow(p) == 0, 0, sum(m$area)))
                       
-    ##Densité de haie ----
-    # k = mask(crop(raster_haie, b_v),b_v)
-    # dens_haie = lsm_c_ed(k, FALSE, 8)#pas sur des directions 
-      
+    ## Densité de haie ----
+    q = st_intersection(data_haie, b) %>%
+      mutate(longueur = st_length(geom))
+    haie_density = c(ifelse(nrow(m) == 0, 0,(sum(q$longueur)/buffer_area) * 10000))
+
     ##Diversité d'élément semi-naturel/naturel ----
     
     ##Diversité d'occupation du sol ----
@@ -362,6 +364,7 @@ for (i in 1:nrow(data_site)){
                         area_prairie,
                         area_praiperm,
                         area_prairota,
+                        haie_density,
                         Shannon_cultu = Shannon_cultu$value)
     
     ## !!! collage ligne par ligne----

@@ -12,15 +12,21 @@ library(rgdal)
 # library(usethis) 
 
 
-RasterizeFunction = function(Shp, res, field){
-  ZONE <- readOGR(Shp)
-  ZRASTER <- raster(ext=extent( ZONE ),res=res,crs=Zproj, vals=NA) 
+
+RasterizeFunction = function( shp, res, field){
+  Zproj<-"+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +units=m +no_defs"
+  ZONE <- readOGR(shp)
+  ZRASTER <- raster(ext=extent( ZONE ),res=res,crs=Zproj, vals=NA)
   R <- rasterize(ZONE, ZRASTER, field=ZONE$field)
 }
-
-RasterizeFunction(data_naturel, 10, Nature)
-
-
+# x = file.path(Folderpath,FolderCarto,"data_naturel.gpkg")
+# RasterizeFunction(x, 10, Nature)
+# 
+# ZONE <- readOGR(x)
+# Zproj<-"+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +units=m +no_defs"
+# ZRASTER <- raster(ext=extent( data_naturel ),res=10,crs=Zproj, vals=NA)
+# R <- rasterize(data_naturel, ZRASTER, field=data_naturel$Nature)
+#                
 # setwd("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees/Carto") # repertoire de travail
 # dir.create("./RASTERS") # creer un dossier pour stocker les rasters finaux
 # 
@@ -28,7 +34,7 @@ RasterizeFunction(data_naturel, 10, Nature)
 # Zproj<-"+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +units=m +no_defs"
 # 
 # # Recuperer un shp avec la zone d-etude élargie (par exemple, des buffers de 10km autour de tous les points étudiés)
-# ZONE <- readOGR("data_occupation_haie_buffer.gpkg")
+# ZONE <- readOGR("data_naturel.gpkg", layer = )
 # #ZONE <- projection( Zproj )
 # ZRASTER <- raster(ext=extent( ZONE ),res=10,crs=Zproj, vals=NA) # cree un raster sur la même etendue que la zone d-etude de resolution 20m
 # #plot( ZRASTER )

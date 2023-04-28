@@ -294,13 +294,16 @@ for (i in 1:nrow(data_site)){
     k = if(b$year == 2019){mask(crop(Div_2019, b_v),b_v)}else if(b$year==2020){mask(crop(Div_2020, b_v),b_v)} else{mask(crop(Div_2021, b_v),b_v)} 
     Shannon_cultu = lsm_l_shdi(k)
     
-    ## Surface agricole ----
+    ## Surface/moyenne/perimetre agricole ----
     
     l = if(b$year == 2019){st_intersection(RPG_2019 , b)}else if(b$year==2020){st_intersection(RPG_2020 , b)} else{st_intersection(RPG_2021 , b)}
     l = l  %>% 
-      mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
+      mutate(area = st_area(geom), perimeter = st_perimeter(geom), pourcentage = (area * 100)/buffer_area)%>% 
       distinct()
-    area_agri = c(ifelse(nrow(l) == 0, 0, sum(l$area)))
+    area_agri = c(ifelse(nrow(l) == 0, 0, (sum(l$area) * 100)/buffer_area))
+    moy_area_agri = c(ifelse(nrow(l) == 0, 0, mean(l$area)))
+    pourc_moy_area_agri = c(ifelse(nrow(l) == 0, 0, mean(l$pourcentage)))
+    perimeter_agri = c(ifelse(nrow(l) == 0, 0, mean(l$perimeter)))
     
     ## Surface de prairie total ----
     
@@ -333,6 +336,7 @@ for (i in 1:nrow(data_site)){
       mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
       distinct()
     area_prairota = c(ifelse(nrow(p) == 0, 0, sum(m$area)))
+    
                       
     ## Densité de haie ----
     q = st_intersection(data_haie, b) %>%
@@ -348,11 +352,14 @@ for (i in 1:nrow(data_site)){
     s =mask(crop(data_naturel, b_v),b_v)
     Shannon_naturel= lsm_l_shdi(s)
     
+    ##Surface moyenne des parcelles ----
+
+    
+    ## Perimètre moyenne des parcelles ----
+    
     ##Diversité d'occupation du sol ----
     
     ##Densité de bordure ----
-    
-    ##Taille moyenne des parcelles ----
     
     
     ## !!! collage dans le vecteur ----
@@ -375,6 +382,7 @@ for (i in 1:nrow(data_site)){
                         area_prairie,
                         area_praiperm,
                         area_prairota,
+                        moy_area_agri,
                         haie_density,
                         route_density,
                         Shannon_naturel = Shannon_naturel$value,
@@ -388,6 +396,8 @@ for (i in 1:nrow(data_site)){
 print(i)
 }
 
-
+library(lwgeom)
+lol =st_perimeter(RPG_2021)
+lol
 
 

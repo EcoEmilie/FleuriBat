@@ -16,6 +16,7 @@ library(mapview)#afficher les données sur une carte
 library(terra)#gestion de raster similaire au package `raster`
 library(landscapemetrics)#calcule de variable paysagère
 library(landscapetools)
+library(lwgeom) #Calcul des perimetres 
 
 
 # Chargement des données --------------------------------------------------
@@ -117,6 +118,8 @@ RPG_2020 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_RPG_2020.gpkg
 #2021
 RPG_2021 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_RPG_2021.gpkg"))%>% 
   st_transform(2154)
+
+nb_parcelle= c()
 
 ##Diversité raster
 #2019
@@ -299,11 +302,14 @@ for (i in 1:nrow(data_site)){
     l = if(b$year == 2019){st_intersection(RPG_2019 , b)}else if(b$year==2020){st_intersection(RPG_2020 , b)} else{st_intersection(RPG_2021 , b)}
     l = l  %>% 
       mutate(area = st_area(geom), perimeter = st_perimeter(geom), pourcentage = (area * 100)/buffer_area)%>% 
-      distinct()
+      distinct() %>% 
+      add_tally(name = "n")
+    
     area_agri = c(ifelse(nrow(l) == 0, 0, (sum(l$area) * 100)/buffer_area))
     moy_area_agri = c(ifelse(nrow(l) == 0, 0, mean(l$area)))
     pourc_moy_area_agri = c(ifelse(nrow(l) == 0, 0, mean(l$pourcentage)))
     perimeter_agri = c(ifelse(nrow(l) == 0, 0, mean(l$perimeter)))
+    nb_parcelle =  c(ifelse(nrow(l) == 0, 0, l$n[1]))
     
     ## Surface de prairie total ----
     
@@ -349,18 +355,17 @@ for (i in 1:nrow(data_site)){
     route_density = c(ifelse(nrow(r) == 0, 0,(sum(q$longueur)/buffer_area) * 10000))
     
     ##Diversité d'élément semi-naturel/naturel ----
-    s =mask(crop(data_naturel, b_v),b_v)
+    s = mask(crop(data_naturel, b_v),b_v)
     Shannon_naturel= lsm_l_shdi(s)
     
-    ##Surface moyenne des parcelles ----
+    ## Nombre de point deau ----
+    t = st_intersection(data_plan_eau, b) %>% 
+      add_tally(name = "n")
+    nb_plan_eau =  c(ifelse(nrow(t) == 0, 0, t$n[1]))
 
-    
-    ## Perimètre moyenne des parcelles ----
-    
     ##Diversité d'occupation du sol ----
     
     ##Densité de bordure ----
-    
     
     ## !!! collage dans le vecteur ----
     vecteur_var = cbind(b,
@@ -383,8 +388,12 @@ for (i in 1:nrow(data_site)){
                         area_praiperm,
                         area_prairota,
                         moy_area_agri,
+                        pourc_moy_area_agri,
+                        perimeter_agri,
                         haie_density,
                         route_density,
+                        nb_parcelle,
+                        nb_plan_eau,
                         Shannon_naturel = Shannon_naturel$value,
                         Shannon_cultu = Shannon_cultu$value)
     
@@ -396,7 +405,7 @@ for (i in 1:nrow(data_site)){
 print(i)
 }
 
-library(lwgeom)
+
 lol =st_perimeter(RPG_2021)
 lol
 

@@ -82,7 +82,7 @@ dist_cours_eau = c()
 ### Ripisylve  -------------------------------------------------------------
 
 data_ripisylve = data_cours_eau %>% 
-  st_buffer(dist = 10)
+  st_buffer(dist = 2)
 
 dist_ripisylve = c()
 area_ripi = c()
@@ -100,6 +100,8 @@ density_haie= c()
 data_route = st_read(dsn = file.path(Folderpath,FolderCarto,"data_route_total.gpkg"))
 
 ### Bande -------------------------------------------------------------
+
+
 
 
 ### RPG ----------------------------------------------------
@@ -195,6 +197,16 @@ BIO_2020 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_BIO_2020.gpkg
 #2021 
 BIO_2021 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_BIO_2021.gpkg"))%>% 
   st_transform(2154)
+
+### Élément semi-naturel/naturel  -------------------------------------------
+
+data_naturel = bind_rows("Foret" = data_foret[,"geom"],
+                         "Haie" = data_haie[,"geom"], 
+                         "Ripisylve" = data_ripisylve[,"geom"],
+                         "prairie" =prairie_2021[,"geom"],
+                         "Plan_eau" = data_plan_eau[,"geom"],
+                         .id = "Nature")
+
 
 # Calcule des variables paysagères  ---------------------------------------
 
@@ -346,10 +358,6 @@ for (i in 1:nrow(data_site)){
     
     ##Taille moyenne des parcelles ----
     
-    
-    
-    ##Luminosité ----
-
     
     ## !!! collage dans le vecteur ----
     vecteur_var = cbind(b,

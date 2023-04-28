@@ -8,8 +8,13 @@
 
 library(sf)
 library(tidyverse)
+library(dplyr)
 library(raster)
+library(rgdal)
 
+# Function ----------------------------------------------------------------
+
+source("~/Documents sur ordi/GitHub/FleuriBat/FunctionRasterize.R")
 
 # Chargement data ---------------------------------------------------------
 
@@ -59,18 +64,17 @@ prairie_2021 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_RPG_2021.
 ## Élément semi-naturel/naturel  -------------------------------------------
 
 #Shapefile 
-data_naturel = bind_rows("Foret" = data_foret[,"geom"],
-                         "Haie" = data_haie[,"geom"], 
-                         "Ripisylve" = data_ripisylve[,"geom"],
-                         "prairie" = prairie_2021[,"geom"],
-                         "Plan_eau" = data_plan_eau[,"geom"],
+data_naturel = bind_rows("Foret" = data_foret,
+                         "Haie" = data_haie, 
+                         "Ripisylve" = data_ripisylve,
+                         "prairie" = prairie_2021,
+                         "Plan_eau" = data_plan_eau,
                          .id = "Nature") 
 
 data_naturel1 =   st_intersection(data_naturel, st_buffer(data_site, dist = 4000)) %>% 
-  select(geom)
+  dplyr::select(Nature,geom)
   
 
-# Raster 
 
 
 
@@ -83,5 +87,8 @@ st_write(data_naturel1, dsn = file.path(Folderpath, FolderCarto, "data_naturel.g
 #RDS
 saveRDS(data_naturel1, file = file.path(Folderpath, FolderCarto, "data_naturel.rds"))
 
-#Raster
-writeRaster(R,file = file.path(Folderpath, FolderCarto, "data_naturel.tif"),overwrite=TRUE)
+# Raster 
+shp = file.path(Folderpath,FolderCarto,"data_naturel.gpkg")
+RasterizeFunction(shp, 10, Nature)
+
+writeRaster(R,file = file.path(Folderpath, FolderCarto, FolderRaster, "data_naturel.tif"),overwrite=TRUE)

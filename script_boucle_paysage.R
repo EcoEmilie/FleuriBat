@@ -200,19 +200,14 @@ BIO_2021 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_BIO_2021.gpkg
 
 ### Élément semi-naturel/naturel  -------------------------------------------
 
-data_naturel = bind_rows("Foret" = data_foret[,"geom"],
-                         "Haie" = data_haie[,"geom"], 
-                         "Ripisylve" = data_ripisylve[,"geom"],
-                         "prairie" =prairie_2021[,"geom"],
-                         "Plan_eau" = data_plan_eau[,"geom"],
-                         .id = "Nature")
+data_naturel = rast(file.path(Folderpath,FolderCarto,"RASTERS/data_naturel.tif"))
 
 
 # Calcule des variables paysagères  ---------------------------------------
 
 #Départ
 data_pay = data.frame() 
-buffer = c(100,500,1000,1500)
+buffer = c(100,500,1000,2000)
 
 
 
@@ -349,8 +344,9 @@ for (i in 1:nrow(data_site)){
       mutate(longueur = st_length(geom))
     route_density = c(ifelse(nrow(r) == 0, 0,(sum(q$longueur)/buffer_area) * 10000))
     
-
     ##Diversité d'élément semi-naturel/naturel ----
+    s =mask(crop(data_naturel, b_v),b_v)
+    Shannon_naturel= lsm_l_shdi(s)
     
     ##Diversité d'occupation du sol ----
     
@@ -381,6 +377,7 @@ for (i in 1:nrow(data_site)){
                         area_prairota,
                         haie_density,
                         route_density,
+                        Shannon_naturel = Shannon_naturel$value,
                         Shannon_cultu = Shannon_cultu$value)
     
     ## !!! collage ligne par ligne----

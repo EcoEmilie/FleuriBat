@@ -18,15 +18,17 @@ RasterizeFunction = function( shp, res, field){
   ZONE <- readOGR(shp)
   ZRASTER <- raster(ext=extent( ZONE ),res=res,crs=Zproj, vals=NA)
   R <- rasterize(ZONE, ZRASTER, field=ZONE$field)
+  return(R)
 }
-# x = file.path(Folderpath,FolderCarto,"data_naturel.gpkg")
+# x = file.path(Folderpath, FolderCarto, "data_naturel.gpkg")
 # RasterizeFunction(x, 10, Nature)
 # 
-# ZONE <- readOGR(x)
+# ZONE <- readOGR(x) 
+# ZONE$Nature = as.factor(ZONE$Nature)
 # Zproj<-"+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +units=m +no_defs"
-# ZRASTER <- raster(ext=extent( data_naturel ),res=10,crs=Zproj, vals=NA)
-# R <- rasterize(data_naturel, ZRASTER, field=data_naturel$Nature)
-#                
+# ZRASTER <- raster(ext=extent( ZONE),res=10,crs=Zproj, vals=NA)
+# R <- rasterize(ZONE, ZRASTER, field=ZONE$Nature)
+#             
 # setwd("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees/Carto") # repertoire de travail
 # dir.create("./RASTERS") # creer un dossier pour stocker les rasters finaux
 # 

@@ -92,9 +92,14 @@ area_ripi = c()
 
 data_haie = st_read(dsn = file.path(Folderpath,FolderCarto,"data_occupation_haie_total.gpkg"))
 
+data_lisiere = bind_rows("foret" = st_cast(data_foret, "MULTILINESTRING"),
+                         "haie" = st_cast(data_haie,"MULTILINESTRING" ),
+                         .id = "Data") 
+
 # raster_haie = rast("raster_haie.tif")
 
 density_haie= c()
+lisiere_density= c()
 
 ### Route -------------------------------------------------------------
 
@@ -102,7 +107,8 @@ data_route = st_read(dsn = file.path(Folderpath,FolderCarto,"data_route_total.gp
 
 ### Bande -------------------------------------------------------------
 
-
+data_bande = st_read(dsn = file.path(Folderpath,FolderCarto,"bandes_fleuries_modif.shp")) 
+st_crs(data_bande)= 2154
 
 
 ### RPG ----------------------------------------------------
@@ -217,7 +223,7 @@ buffer = c(100,500,1000,2000)
 
 #selection de la ligne 
 for (i in 1:nrow(data_site)){
-  names_year = data_site[i,c("Carre_Point_vigiechiro","year","geometry")]
+  names_year = data_site[i,c("Carre_Point_vigiechiro","year","Modalite_protocole", "geometry")]
   
   ##Distance à la mare ----
   dist_eau = st_distance(names_year, data_plan_eau, by_element = FALSE) %>% 
@@ -242,6 +248,12 @@ for (i in 1:nrow(data_site)){
   ##Distance à la haie ----
   dist_haie = st_distance(names_year, data_haie, by_element = FALSE) %>% 
     min()
+  
+  ##Surface bande ----
+  v = if(names_year$Modalite_protocole == "bande"){
+    st_intersection(data_bande,st_buffer(names_year,dist = 2000))
+  }
+  bande_area = c(ifelse(nrow(v) == 0, 0,st_area(v$geom)))
   
   for (j in 1:length(buffer)){
     
@@ -352,7 +364,7 @@ for (i in 1:nrow(data_site)){
     ##Densité de route----
     r = st_intersection(data_route, b) %>%
       mutate(longueur = st_length(geom))
-    route_density = c(ifelse(nrow(r) == 0, 0,(sum(q$longueur)/buffer_area) * 10000))
+    route_density = c(ifelse(nrow(r) == 0, 0,(sum(r$longueur)/buffer_area) * 10000))
     
     ##Diversité d'élément semi-naturel/naturel ----
     s = mask(crop(data_naturel, b_v),b_v)
@@ -363,9 +375,12 @@ for (i in 1:nrow(data_site)){
       add_tally(name = "n")
     nb_plan_eau =  c(ifelse(nrow(t) == 0, 0, t$n[1]))
 
-    ##Diversité d'occupation du sol ----
+    ##Densité de lisière ----
+    u = st_intersection(data_lisiere, b) %>%
+      mutate(longueur = st_length(geom))
+    lisiere_density = c(ifelse(nrow(u) == 0, 0,(sum(u$longueur)/buffer_area) * 10000))
     
-    ##Densité de bordure ----
+
     
     ## !!! collage dans le vecteur ----
     vecteur_var = cbind(b,
@@ -377,6 +392,7 @@ for (i in 1:nrow(data_site)){
                         dist_cours_eau, 
                         dist_ripisylve,
                         dist_haie,
+                        bande_area,
                         area_ripi,
                         area_foret,
                         area_feuillu,
@@ -392,6 +408,7 @@ for (i in 1:nrow(data_site)){
                         perimeter_agri,
                         haie_density,
                         route_density,
+                        lisiere_density,
                         nb_parcelle,
                         nb_plan_eau,
                         Shannon_naturel = Shannon_naturel$value,
@@ -405,8 +422,5 @@ for (i in 1:nrow(data_site)){
 print(i)
 }
 
-
-lol =st_perimeter(RPG_2021)
-lol
 
 

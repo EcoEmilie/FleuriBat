@@ -252,7 +252,7 @@ for (i in 1:nrow(data_site)){
   ##Surface bande ----
   v = if(names_year$Modalite_protocole == "bande"){
     st_intersection(data_bande,st_buffer(names_year,dist = 2000))
-  }
+  }else{data.frame}
   bande_area = c(ifelse(nrow(v) == 0, 0,st_area(v$geom)))
   
   for (j in 1:length(buffer)){

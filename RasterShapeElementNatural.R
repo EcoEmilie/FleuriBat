@@ -72,12 +72,9 @@ data_naturel = bind_rows("Foret" = data_foret,
                          .id = "Nature") 
 
 data_naturel1 =   st_intersection(data_naturel, st_buffer(data_site, dist = 4000)) %>% 
-  dplyr::select(Nature,geom)
+  dplyr::select(Nature,geom) %>% 
+  mutate(Nature = as.factor(Nature))
   
-
-
-
-
 
 # Ecriture ----------------------------------------------------------------
 
@@ -89,6 +86,6 @@ saveRDS(data_naturel1, file = file.path(Folderpath, FolderCarto, "data_naturel.r
 
 # Raster 
 shp = file.path(Folderpath,FolderCarto,"data_naturel.gpkg")
-RasterizeFunction(shp, 10, Nature)
+R = RasterizeFunction(shp, 10, Nature)
 
 writeRaster(R,file = file.path(Folderpath, FolderCarto, FolderRaster, "data_naturel.tif"),overwrite=TRUE)

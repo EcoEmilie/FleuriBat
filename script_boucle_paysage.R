@@ -155,15 +155,15 @@ prairie_2021 = RPG_2021 %>%
 #prairie permanente
 #2019 
 praiperm_2019 = RPG_2019 %>% 
-  filter(CODE_CULTU == c("PPH"))
+  filter(CODE_CULTU == c("PPH","PRL"))
 
 #2020 
 praiperm_2020 = RPG_2020 %>% 
-  filter(CODE_CULTU == c("PPH"))
+  filter(CODE_CULTU == c("PPH","PRL"))
 
 #2021 
 praiperm_2021 = RPG_2021 %>% 
-  filter(CODE_CULTU == c("PPH"))
+  filter(CODE_CULTU == c("PPH","PRL"))
 
 #prairie temporaire
 #2019 
@@ -178,18 +178,6 @@ praitemp_2020 = RPG_2020 %>%
 praitemp_2021 = RPG_2021 %>% 
   filter(CODE_CULTU == c("PTR"))
 
-#prairie rotation longue
-#2019 
-prairota_2019 = RPG_2019 %>% 
-  filter(CODE_CULTU == c("PRL"))
-
-#2020 
-prairota_2020 = RPG_2020 %>% 
-  filter(CODE_CULTU == c("PRL"))
-
-#2021 
-prairota_2021 = RPG_2021 %>% 
-  filter(CODE_CULTU == c("PRL"))
 
 
 
@@ -241,10 +229,6 @@ for (i in 1:nrow(data_site)){
   dist_cours_eau = st_distance(names_year, data_cours_eau, by_element = FALSE) %>% 
     min()
   
-  ##Distance ripisylve ----
-  dist_ripisylve = st_distance(names_year, data_ripisylve, by_element = FALSE) %>% 
-    min()
-  
   ##Distance à la haie ----
   dist_haie = st_distance(names_year, data_haie, by_element = FALSE) %>% 
     min()
@@ -263,31 +247,11 @@ for (i in 1:nrow(data_site)){
     b_v = vect(b)
     buffer_area = st_area(b)
     
-    ##Surface de la bande----
-    
-    ##Surface de ripisylve----
-    c = st_intersection(data_ripisylve, b)  %>% 
-      mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
-      distinct()
-    area_ripi = c(ifelse(nrow(c) == 0, 0, sum(c$area)))  
-    
     ##Surace de forêt total----
     d = st_intersection(data_foret , b)%>% 
       mutate(area = (st_area(geom)* 100)/buffer_area) %>% 
       distinct() 
     area_foret = c(ifelse(nrow(d) == 0, 0, sum(d$area)))
-    
-    ##Surface de forêt feuillu ----
-    e = st_intersection(data_foret_feuillu , b) %>% 
-      mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
-      distinct() 
-    area_feuillu = c(ifelse(nrow(e) == 0, 0, sum(e$area)))
-    
-    ##Surface de forêt conifere ----
-    f = st_intersection(data_foret_conifere , b)%>% 
-      mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
-      distinct() 
-    area_conifere = c(ifelse(nrow(f) == 0, 0, sum(f$area)))
     
     ##Surface zone urbaine ----
     g = st_intersection(data_habitation , b) %>% 
@@ -319,7 +283,6 @@ for (i in 1:nrow(data_site)){
     
     area_agri = c(ifelse(nrow(l) == 0, 0, (sum(l$area) * 100)/buffer_area))
     moy_area_agri = c(ifelse(nrow(l) == 0, 0, mean(l$area)))
-    pourc_moy_area_agri = c(ifelse(nrow(l) == 0, 0, mean(l$pourcentage)))
     perimeter_agri = c(ifelse(nrow(l) == 0, 0, mean(l$perimeter)))
     nb_parcelle =  c(ifelse(nrow(l) == 0, 0, l$n[1]))
     
@@ -347,14 +310,6 @@ for (i in 1:nrow(data_site)){
       distinct()
     area_praitemp = c(ifelse(nrow(o) == 0, 0, sum(m$area)))
     
-    ## Surface de prairie rotation longue ----
-    
-    p = if(b$year == 2019){st_intersection(prairota_2019 , b)}else if(b$year==2020){st_intersection(prairota_2020 , b)} else{st_intersection(prairota_2021 , b)}
-    p = p  %>% 
-      mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
-      distinct()
-    area_prairota = c(ifelse(nrow(p) == 0, 0, sum(m$area)))
-    
                       
     ## Densité de haie ----
     q = st_intersection(data_haie, b) %>%
@@ -369,11 +324,7 @@ for (i in 1:nrow(data_site)){
     ##Diversité d'élément semi-naturel/naturel ----
     s = mask(crop(data_naturel, b_v),b_v)
     Shannon_naturel= lsm_l_shdi(s)
-    
-    ## Nombre de point deau ----
-    t = st_intersection(data_plan_eau, b) %>% 
-      add_tally(name = "n")
-    nb_plan_eau =  c(ifelse(nrow(t) == 0, 0, t$n[1]))
+
 
     ##Densité de lisière ----
     u = st_intersection(data_lisiere, b) %>%
@@ -389,28 +340,23 @@ for (i in 1:nrow(data_site)){
                         dist_eau, 
                         dist_habitation, 
                         dist_foret, 
-                        dist_cours_eau, 
-                        dist_ripisylve,
+                        dist_cours_eau,
                         dist_haie,
                         bande_area,
                         area_ripi,
                         area_foret,
-                        area_feuillu,
-                        area_conifere,
                         area_habitation,
                         area_agri,
                         area_BIO,
                         area_prairie,
                         area_praiperm,
-                        area_prairota,
+                        area_praitemp,
                         moy_area_agri,
-                        pourc_moy_area_agri,
                         perimeter_agri,
                         haie_density,
                         route_density,
                         lisiere_density,
                         nb_parcelle,
-                        nb_plan_eau,
                         Shannon_naturel = Shannon_naturel$value,
                         Shannon_cultu = Shannon_cultu$value)
     

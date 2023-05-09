@@ -40,17 +40,7 @@ data_site= read.csv(file = file.path(Folderpath, FolderChiro, "donnees_site_Nuit
 
 ## Carte -------------------------------------------------------------------
 
-### Plan d'eau  -------------------------------------------------------------
-
-
-data_plan_eau = st_read(dsn = file.path(Folderpath,FolderCarto,"data_plan_eau_total.gpkg")) %>% 
-  st_transform(2154)
-
-
-dist_eau =c()#Création d'un vecteur pour accueillir la variable 
-
 ### Zone urbaine  -------------------------------------------------------------
-
 
 data_habitation = st_read(dsn = file.path(Folderpath,FolderCarto,"data_occupation_bati_total.gpkg")) %>% 
   st_transform(2154)
@@ -59,34 +49,31 @@ dist_habitation = c()
 
 ### Forêt  -------------------------------------------------------------
 
-
 data_foret = st_read(dsn = file.path(Folderpath,FolderCarto,"data_occupation_foret_total.gpkg")) %>% 
   st_transform(2154)
 dist_foret = c() 
 
-#Feuillu
-data_foret_feuillu = data_foret %>% 
-  filter(str_detect(nature,"feuillus"))
+# #Feuillu
+# data_foret_feuillu = data_foret %>% 
+#   filter(str_detect(nature,"feuillus"))
+# 
+# #Conifère
+# data_foret_conifere = data_foret %>% 
+#   filter(str_detect(nature,"conifères"))
 
-#Conifère
-data_foret_conifere = data_foret %>% 
-  filter(str_detect(nature,"conifères"))
+### Éléments aquatiques  -------------------------------------------------------------
 
-### Cours d'eau  -------------------------------------------------------------
+data_eau = readRDS(file.path(Folderpath,FolderCarto,"data_eau.rds"))
 
+dist_eau =c()#Création d'un vecteur pour accueillir la variable 
 
-data_cours_eau = st_read(dsn = file.path(Folderpath,FolderCarto,"data_cours_eau_total.gpkg")) %>% 
-  st_transform(2154)
-
-dist_cours_eau = c()
-
-### Ripisylve  -------------------------------------------------------------
-
-data_ripisylve = data_cours_eau %>% 
-  st_buffer(dist = 2)
-
-dist_ripisylve = c()
-area_ripi = c()
+# ### Ripisylve  -------------------------------------------------------------
+# 
+# data_ripisylve = data_cours_eau %>% 
+#   st_buffer(dist = 2)
+# 
+# dist_ripisylve = c()
+# area_ripi = c()
 
 ### Haie  -------------------------------------------------------------
 
@@ -117,13 +104,22 @@ st_crs(data_bande)= 2154
 RPG_2019 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_RPG_2019.gpkg")) %>% 
   st_transform(2154)
 
+RPG_cultu_2019 = RPG_2019 %>% 
+  filter(!CODE_CULTU == c("11","17","18", "28"))
+
 #2020 
 RPG_2020 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_RPG_2020.gpkg"))%>% 
   st_transform(2154)
 
+RPG_cultu_2020 = RPG_2020%>% 
+  filter(!CODE_CULTU == c("11","17","18", "28"))
+
 #2021
 RPG_2021 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_RPG_2021.gpkg"))%>% 
   st_transform(2154)
+
+RPG_cultu_2021 = RPG_2021%>% 
+  filter(!CODE_CULTU == c("11","17","18", "28"))
 
 nb_parcelle= c()
 
@@ -213,10 +209,6 @@ buffer = c(100,500,1000,2000)
 for (i in 1:nrow(data_site)){
   names_year = data_site[i,c("Carre_Point_vigiechiro","year","Modalite_protocole", "geometry")]
   
-  ##Distance à la mare ----
-  dist_eau = st_distance(names_year, data_plan_eau, by_element = FALSE) %>% 
-    min()
-  
   ##Distance aux zones urbaines ----
   dist_habitation = st_distance(names_year, data_habitation, by_element = FALSE) %>% 
     min()
@@ -225,8 +217,8 @@ for (i in 1:nrow(data_site)){
   dist_foret = st_distance(names_year, data_foret, by_element = FALSE) %>% 
     min()
   
-  ##Distance au cours d'eau ----
-  dist_cours_eau = st_distance(names_year, data_cours_eau, by_element = FALSE) %>% 
+  ##Distance à l'eau ----
+  dist_eau = st_distance(names_year, data_eau, by_element = FALSE) %>% 
     min()
   
   ##Distance à la haie ----
@@ -235,8 +227,8 @@ for (i in 1:nrow(data_site)){
   
   ##Surface bande ----
   v = if(names_year$Modalite_protocole == "bande"){
-    st_intersection(data_bande,st_buffer(names_year,dist = 2000))
-  }else{data.frame}
+    st_intersection(data_bande,st_buffer(names_year,dist = 100))
+  }else{data.frame()}
   bande_area = c(ifelse(nrow(v) == 0, 0,st_area(v$geom)))
   
   for (j in 1:length(buffer)){
@@ -277,14 +269,21 @@ for (i in 1:nrow(data_site)){
     
     l = if(b$year == 2019){st_intersection(RPG_2019 , b)}else if(b$year==2020){st_intersection(RPG_2020 , b)} else{st_intersection(RPG_2021 , b)}
     l = l  %>% 
-      mutate(area = st_area(geom), perimeter = st_perimeter(geom), pourcentage = (area * 100)/buffer_area)%>% 
+      mutate(area = st_area(geom), perimeter = st_perimeter(geom))%>% 
       distinct() %>% 
       add_tally(name = "n")
     
-    area_agri = c(ifelse(nrow(l) == 0, 0, (sum(l$area) * 100)/buffer_area))
-    moy_area_agri = c(ifelse(nrow(l) == 0, 0, mean(l$area)))
+    moy_area_agri = c(ifelse(nrow(l) == 0, 0, mean(l$area * 10000)))
     perimeter_agri = c(ifelse(nrow(l) == 0, 0, mean(l$perimeter)))
     nb_parcelle =  c(ifelse(nrow(l) == 0, 0, l$n[1]))
+    
+    ## Surface culture ----
+    l = if(b$year == 2019){st_intersection(RPG_cultu_2019 , b)}else if(b$year==2020){st_intersection(RPG_cultu_2020 , b)} else{st_intersection(RPG_cultu_2021 , b)}
+    l = l  %>% 
+      mutate(area = st_area(geom))%>% 
+      distinct() 
+    
+    area_agri = c(ifelse(nrow(l) == 0, 0, (sum(l$area) * 100)/buffer_area))
     
     ## Surface de prairie total ----
     
@@ -340,10 +339,9 @@ for (i in 1:nrow(data_site)){
                         dist_eau, 
                         dist_habitation, 
                         dist_foret, 
-                        dist_cours_eau,
+                        dist_eau,
                         dist_haie,
                         bande_area,
-                        area_ripi,
                         area_foret,
                         area_habitation,
                         area_agri,

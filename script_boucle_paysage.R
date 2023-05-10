@@ -27,14 +27,15 @@ library(lwgeom) #Calcul des perimetres
 Folderpath = paste("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees")
 FolderChiro = "Chiropteres"
 FolderCarto = "Carto"
+FolderSite = paste("/Users/emihui/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees/2.Donnees_intermediaire")
 
 ## Données sites -----------------------------------------------------------
 
-data_site= read.csv(file = file.path(Folderpath, FolderChiro, "donnees_site_Nuit.csv"), header = TRUE, sep = ",", dec = ".") %>% #A changer avec données site
+data_site= readRDS(file = file.path(FolderSite, "data_site.rds")) %>% #A changer avec données site
   mutate(Commune = str_to_upper(Commune), year = as.factor(year)) %>% 
   mutate(Commune = str_replace_all(Commune,"_"," ")) %>% 
   unite(Mod_pass, Modalite_protocole, Num_passag, sep = "_", remove = FALSE)%>% 
-  slice_sample(n = 10) %>% 
+  #slice_sample(n = 10) %>% 
   st_as_sf(coords = c("X","Y"), crs = 4326) %>% #au départ en WGS 84
   st_transform(2154) 
 
@@ -226,10 +227,10 @@ for (i in 1:nrow(data_site)){
     min()
   
   ##Surface bande ----
-  v = if(names_year$Modalite_protocole == "bande"){
+  a = if(names_year$Modalite_protocole == "bande"){
     st_intersection(data_bande,st_buffer(names_year,dist = 100))
   }else{data.frame()}
-  bande_area = c(ifelse(nrow(v) == 0, 0,st_area(v$geom)))
+  bande_area = c(ifelse(nrow(a) == 0, 0,st_area(a$geom)))
   
   for (j in 1:length(buffer)){
     
@@ -240,95 +241,95 @@ for (i in 1:nrow(data_site)){
     buffer_area = st_area(b)
     
     ##Surace de forêt total----
-    d = st_intersection(data_foret , b)%>% 
+    a = st_intersection(data_foret , b)%>% 
       mutate(area = (st_area(geom)* 100)/buffer_area) %>% 
       distinct() 
-    area_foret = c(ifelse(nrow(d) == 0, 0, sum(d$area)))
+    area_foret = c(ifelse(nrow(a) == 0, 0, sum(a$area)))
     
     ##Surface zone urbaine ----
-    g = st_intersection(data_habitation , b) %>% 
+    a = st_intersection(data_habitation , b) %>% 
       mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
       distinct() 
-    area_habitation = c(ifelse(nrow(g) == 0, 0, sum(g$area)))
+    area_habitation = c(ifelse(nrow(a) == 0, 0, sum(a$area)))
     
     ##Surface de BIO----
     
-    j = if(b$year == 2019){st_intersection(BIO_2019 , b)}else if(b$year==2020){st_intersection(BIO_2020 , b)} else{st_intersection(BIO_2021 , b)}
-    j = j  %>% 
+    a = if(b$year == 2019){st_intersection(BIO_2019 , b)}else if(b$year==2020){st_intersection(BIO_2020 , b)} else{st_intersection(BIO_2021 , b)}
+    a = a  %>% 
       mutate(area = (st_area(geom)* 100)/buffer_area) %>% 
       distinct()
       
-    area_BIO = c(ifelse(nrow(j) == 0, 0,sum(j$area)))
+    area_BIO = c(ifelse(nrow(a) == 0, 0,sum(a$area)))
 
     ##Diversité de culture ----
   
-    k = if(b$year == 2019){mask(crop(Div_2019, b_v),b_v)}else if(b$year==2020){mask(crop(Div_2020, b_v),b_v)} else{mask(crop(Div_2021, b_v),b_v)} 
-    Shannon_cultu = lsm_l_shdi(k)
+    a = if(b$year == 2019){mask(crop(Div_2019, b_v),b_v)}else if(b$year==2020){mask(crop(Div_2020, b_v),b_v)} else{mask(crop(Div_2021, b_v),b_v)} 
+    Shannon_cultu = lsm_l_shdi(a)
     
     ## Surface/moyenne/perimetre agricole ----
     
-    l = if(b$year == 2019){st_intersection(RPG_2019 , b)}else if(b$year==2020){st_intersection(RPG_2020 , b)} else{st_intersection(RPG_2021 , b)}
-    l = l  %>% 
+    a = if(b$year == 2019){st_intersection(RPG_2019 , b)}else if(b$year==2020){st_intersection(RPG_2020 , b)} else{st_intersection(RPG_2021 , b)}
+    a = a  %>% 
       mutate(area = st_area(geom), perimeter = st_perimeter(geom))%>% 
       distinct() %>% 
       add_tally(name = "n")
     
-    moy_area_agri = c(ifelse(nrow(l) == 0, 0, mean(l$area * 10000)))
-    perimeter_agri = c(ifelse(nrow(l) == 0, 0, mean(l$perimeter)))
-    nb_parcelle =  c(ifelse(nrow(l) == 0, 0, l$n[1]))
+    moy_area_agri = c(ifelse(nrow(a) == 0, 0, mean(a$area * 10000)))
+    perimeter_agri = c(ifelse(nrow(a) == 0, 0, mean(a$perimeter)))
+    nb_parcelle =  c(ifelse(nrow(a) == 0, 0, a$n[1]))
     
     ## Surface culture ----
-    l = if(b$year == 2019){st_intersection(RPG_cultu_2019 , b)}else if(b$year==2020){st_intersection(RPG_cultu_2020 , b)} else{st_intersection(RPG_cultu_2021 , b)}
-    l = l  %>% 
+    a = if(b$year == 2019){st_intersection(RPG_cultu_2019 , b)}else if(b$year==2020){st_intersection(RPG_cultu_2020 , b)} else{st_intersection(RPG_cultu_2021 , b)}
+    a = a  %>% 
       mutate(area = st_area(geom))%>% 
       distinct() 
     
-    area_agri = c(ifelse(nrow(l) == 0, 0, (sum(l$area) * 100)/buffer_area))
+    area_agri = c(ifelse(nrow(a) == 0, 0, (sum(a$area) * 100)/buffer_area))
     
     ## Surface de prairie total ----
     
-    m = if(b$year == 2019){st_intersection(prairie_2019 , b)}else if(b$year==2020){st_intersection(prairie_2020 , b)} else{st_intersection(prairie_2021 , b)}
-    m = m  %>% 
+    a = if(b$year == 2019){st_intersection(prairie_2019 , b)}else if(b$year==2020){st_intersection(prairie_2020 , b)} else{st_intersection(prairie_2021 , b)}
+    a = a  %>% 
       mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
       distinct()
-    area_prairie = c(ifelse(nrow(m) == 0, 0, sum(m$area)))
+      area_prairie = c(ifelse(nrow(a) == 0, 0, sum(a$area)))
     
     ## Surface de prairie permanente ----
     
-    n = if(b$year == 2019){st_intersection(praiperm_2019 , b)}else if(b$year==2020){st_intersection(praiperm_2020 , b)} else{st_intersection(praiperm_2021 , b)}
-    n = n  %>% 
+    a = if(b$year == 2019){st_intersection(praiperm_2019 , b)}else if(b$year==2020){st_intersection(praiperm_2020 , b)} else{st_intersection(praiperm_2021 , b)}
+    a = a  %>% 
       mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
       distinct()
-    area_praiperm = c(ifelse(nrow(n) == 0, 0, sum(m$area)))
+      area_praiperm = c(ifelse(nrow(a) == 0, 0, sum(a$area)))
     
     ## Surface de prairie temporaire ----
     
-    o = if(b$year == 2019){st_intersection(praitemp_2019 , b)}else if(b$year==2020){st_intersection(praitemp_2020 , b)} else{st_intersection(praitemp_2021 , b)}
-    o = o  %>% 
+    a = if(b$year == 2019){st_intersection(praitemp_2019 , b)}else if(b$year==2020){st_intersection(praitemp_2020 , b)} else{st_intersection(praitemp_2021 , b)}
+    a = a  %>% 
       mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
       distinct()
-    area_praitemp = c(ifelse(nrow(o) == 0, 0, sum(m$area)))
+    area_praitemp = c(ifelse(nrow(a) == 0, 0, sum(a$area)))
     
                       
     ## Densité de haie ----
-    q = st_intersection(data_haie, b) %>%
+    a = st_intersection(data_haie, b) %>%
       mutate(longueur = st_length(geom))
-    haie_density = c(ifelse(nrow(q) == 0, 0,(sum(q$longueur)/buffer_area) * 10000))
+    haie_density = c(ifelse(nrow(a) == 0, 0,(sum(a$longueur)/buffer_area) * 10000))
     
     ##Densité de route----
-    r = st_intersection(data_route, b) %>%
+    a = st_intersection(data_route, b) %>%
       mutate(longueur = st_length(geom))
-    route_density = c(ifelse(nrow(r) == 0, 0,(sum(r$longueur)/buffer_area) * 10000))
+    route_density = c(ifelse(nrow(a) == 0, 0,(sum(a$longueur)/buffer_area) * 10000))
     
     ##Diversité d'élément semi-naturel/naturel ----
-    s = mask(crop(data_naturel, b_v),b_v)
-    Shannon_naturel= lsm_l_shdi(s)
+    a = mask(crop(data_naturel, b_v),b_v)
+    Shannon_naturel= lsm_l_shdi(a)
 
 
     ##Densité de lisière ----
-    u = st_intersection(data_lisiere, b) %>%
+    a = st_intersection(data_lisiere, b) %>%
       mutate(longueur = st_length(geom))
-    lisiere_density = c(ifelse(nrow(u) == 0, 0,(sum(u$longueur)/buffer_area) * 10000))
+    lisiere_density = c(ifelse(nrow(a) == 0, 0,(sum(a$longueur)/buffer_area) * 10000))
     
 
     

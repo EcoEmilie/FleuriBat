@@ -27,11 +27,11 @@ library(lwgeom) #Calcul des perimetres
 Folderpath = paste("/Users/emihui/Library/Mobile Documents/com~apple~CloudDocs/FAC/Master/M2/Stage/Stage_ESE-OFB/Statistiques/_Donnees")
 FolderChiro = "Chiropteres"
 FolderCarto = "Carto"
-FolderSite = paste("/Users/emihui/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees/2.Donnees_intermediaire")
+FolderRDS = paste("/Users/emihui/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees/2.Donnees_intermediaire")
 
 ## Données sites -----------------------------------------------------------
 
-data_site= readRDS(file = file.path(FolderSite, "data_site.rds")) %>% #A changer avec données site
+data_site= readRDS(file = file.path(FolderRDS, "data_site.rds")) %>% #A changer avec données site
   mutate(Commune = str_to_upper(Commune), year = as.factor(year)) %>% 
   mutate(Commune = str_replace_all(Commune,"_"," ")) %>% 
   unite(Mod_pass, Modalite_protocole, Num_passag, sep = "_", remove = FALSE)%>% 
@@ -102,21 +102,21 @@ st_crs(data_bande)= 2154
 ### RPG ----------------------------------------------------
 
 #2019 
-RPG_2019 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_RPG_2019.gpkg")) %>% 
+RPG_2019 = st_read(dsn = file.path(FolderRDS,"donnees_RPG_2019.rds")) %>% 
   st_transform(2154)
 
 RPG_cultu_2019 = RPG_2019 %>% 
   filter(!CODE_CULTU == c("11","17","18", "28"))
 
 #2020 
-RPG_2020 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_RPG_2020.gpkg"))%>% 
+RPG_2020 = st_read(dsn = file.path(FolderRDS,"donnees_RPG_2020.rds"))%>% 
   st_transform(2154)
 
 RPG_cultu_2020 = RPG_2020%>% 
   filter(!CODE_CULTU == c("11","17","18", "28"))
 
 #2021
-RPG_2021 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_RPG_2021.gpkg"))%>% 
+RPG_2021 = st_read(dsn = file.path(FolderRDS,"donnees_RPG_2021.rds"))%>% 
   st_transform(2154)
 
 RPG_cultu_2021 = RPG_2021%>% 
@@ -367,5 +367,20 @@ for (i in 1:nrow(data_site)){
 print(i)
 }
 
+show_landscape(R, discrete = FALSE)
+show_lsm(R, what = "lsm_p_area", directions = 4)
+terra::plot(R)
 
+R = mask(crop(Div_2019, b_v),b_v)
 
+tmap_mode("view")
+names_yearsss = tm_shape(names_year)+
+  tm_dots(col = "red")
+
+loll = names_yearsss +
+  tm_shape(RPG_2019)+
+  tm_polygons()
+  
+  
+loll
+tmap_mode("plot")

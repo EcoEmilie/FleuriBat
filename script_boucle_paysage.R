@@ -102,21 +102,21 @@ st_crs(data_bande)= 2154
 ### RPG ----------------------------------------------------
 
 #2019 
-RPG_2019 = st_read(dsn = file.path(FolderRDS,"donnees_RPG_2019.rds")) %>% 
+RPG_2019 = readRDS(file.path(FolderRDS,"donnees_RPG_2019.rds")) %>% 
   st_transform(2154)
 
 RPG_cultu_2019 = RPG_2019 %>% 
   filter(!CODE_CULTU == c("11","17","18", "28"))
 
 #2020 
-RPG_2020 = st_read(dsn = file.path(FolderRDS,"donnees_RPG_2020.rds"))%>% 
+RPG_2020 = readRDS(file.path(FolderRDS,"donnees_RPG_2020.rds"))%>% 
   st_transform(2154)
 
 RPG_cultu_2020 = RPG_2020%>% 
   filter(!CODE_CULTU == c("11","17","18", "28"))
 
 #2021
-RPG_2021 = st_read(dsn = file.path(FolderRDS,"donnees_RPG_2021.rds"))%>% 
+RPG_2021 = readRDS(file.path(FolderRDS,"donnees_RPG_2021.rds"))%>% 
   st_transform(2154)
 
 RPG_cultu_2021 = RPG_2021%>% 
@@ -270,7 +270,7 @@ for (i in 1:nrow(data_site)){
     
     a = if(b$year == 2019){st_intersection(RPG_2019 , b)}else if(b$year==2020){st_intersection(RPG_2020 , b)} else{st_intersection(RPG_2021 , b)}
     a = a  %>% 
-      mutate(area = st_area(geom), perimeter = st_perimeter(geom))%>% 
+      mutate(area = st_area(geometry), perimeter = st_perimeter(geometry))%>% 
       distinct() %>% 
       add_tally(name = "n")
     
@@ -281,7 +281,7 @@ for (i in 1:nrow(data_site)){
     ## Surface culture ----
     a = if(b$year == 2019){st_intersection(RPG_cultu_2019 , b)}else if(b$year==2020){st_intersection(RPG_cultu_2020 , b)} else{st_intersection(RPG_cultu_2021 , b)}
     a = a  %>% 
-      mutate(area = st_area(geom))%>% 
+      mutate(area = st_area(geometry))%>% 
       distinct() 
     
     area_agri = c(ifelse(nrow(a) == 0, 0, (sum(a$area) * 100)/buffer_area))
@@ -290,7 +290,7 @@ for (i in 1:nrow(data_site)){
     
     a = if(b$year == 2019){st_intersection(prairie_2019 , b)}else if(b$year==2020){st_intersection(prairie_2020 , b)} else{st_intersection(prairie_2021 , b)}
     a = a  %>% 
-      mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
+      mutate(area = (st_area(geometry)* 100)/buffer_area)%>% 
       distinct()
       area_prairie = c(ifelse(nrow(a) == 0, 0, sum(a$area)))
     
@@ -298,7 +298,7 @@ for (i in 1:nrow(data_site)){
     
     a = if(b$year == 2019){st_intersection(praiperm_2019 , b)}else if(b$year==2020){st_intersection(praiperm_2020 , b)} else{st_intersection(praiperm_2021 , b)}
     a = a  %>% 
-      mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
+      mutate(area = (st_area(geometry)* 100)/buffer_area)%>% 
       distinct()
       area_praiperm = c(ifelse(nrow(a) == 0, 0, sum(a$area)))
     
@@ -306,7 +306,7 @@ for (i in 1:nrow(data_site)){
     
     a = if(b$year == 2019){st_intersection(praitemp_2019 , b)}else if(b$year==2020){st_intersection(praitemp_2020 , b)} else{st_intersection(praitemp_2021 , b)}
     a = a  %>% 
-      mutate(area = (st_area(geom)* 100)/buffer_area)%>% 
+      mutate(area = (st_area(geometry)* 100)/buffer_area)%>% 
       distinct()
     area_praitemp = c(ifelse(nrow(a) == 0, 0, sum(a$area)))
     
@@ -367,20 +367,4 @@ for (i in 1:nrow(data_site)){
 print(i)
 }
 
-show_landscape(R, discrete = FALSE)
-show_lsm(R, what = "lsm_p_area", directions = 4)
-terra::plot(R)
 
-R = mask(crop(Div_2019, b_v),b_v)
-
-tmap_mode("view")
-names_yearsss = tm_shape(names_year)+
-  tm_dots(col = "red")
-
-loll = names_yearsss +
-  tm_shape(RPG_2019)+
-  tm_polygons()
-  
-  
-loll
-tmap_mode("plot")

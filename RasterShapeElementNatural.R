@@ -120,6 +120,8 @@ saveRDS(data_naturel1, file = file.path(FolderRDS, "data_naturel.rds"))
 
 # Raster 
 shp = file.path(Folderpath,FolderCarto,"data_naturel.gpkg")
-R = RasterizeFunction(shp, 10, Nature)
+R = RasterizeFunction(shp, 5, Nature)
 
 writeRaster(R,file = file.path(Folderpath, FolderCarto, FolderRaster, "data_naturel.tif"),overwrite=TRUE)
+#RDS
+saveRDS(R, file = file.path(FolderRDS, "data_naturel_raster.rds"))

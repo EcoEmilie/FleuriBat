@@ -25,7 +25,8 @@ data_site = read.csv(file = file.path(Folderpath,"1.Donnees_sources", "Chiroptè
   mutate(Commune = str_to_upper(Commune)) %>% 
   mutate(Commune = str_replace_all(Commune," ","_"),
          Commune = str_replace(Commune, "’", "_"),
-         year = as.factor(year)) %>%
+         year = as.factor(year),
+         Modalite_protocole = as.factor(Modalite_protocole)) %>%
   unite(Mod_pass, Modalite_protocole, Num_passag, sep = "_", remove = FALSE) %>%  
   rename( carre_year_pass= carre_year.1) 
 

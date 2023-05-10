@@ -50,7 +50,7 @@ data_site_sf_2021 =  data_site_sf %>%
 data_RPG_2021_B = st_intersection(data_RPG_2021, st_buffer(data_site_sf_2021, dist = 4000)) 
 
 st_write(data_RPG_2021_B,file.path(FolderDonnees,"donnees_RPG_2021.gpkg"), driver = "GPKG", append = FALSE)
-saveRDS(data_RPG_2021_B,file.path(FolderSite,"donnees_RPG_2021.rds"))
+saveRDS(data_RPG_2021_B,file.path(FolderFinal,"donnees_RPG_2021.rds"))
 
 # Chargement données RPG 2020 --------------------------------------------------
 
@@ -72,7 +72,7 @@ data_site_sf_2020 = data_site_sf %>%
 data_RPG_2020_B = st_intersection(data_RPG_2020, st_buffer(data_site_sf_2020, dist = 4000)) 
 
 st_write(data_RPG_2020_B,file.path(FolderDonnees,"donnees_RPG_2020.gpkg"), driver = "GPKG", append = FALSE)
-saveRDS(data_RPG_2020_B,file.path(FolderSite,"donnees_RPG_2020.rds"))
+saveRDS(data_RPG_2020_B,file.path(FolderFinal,"donnees_RPG_2020.rds"))
 
 # Chargement données RPG 2019 --------------------------------------------------
 
@@ -93,4 +93,4 @@ data_site_sf_2019 = data_site_sf %>%
 
 data_RPG_2019_B = st_intersection(data_RPG_2019, st_buffer(data_site_sf_2019, dist = 4000)) 
 st_write(data_RPG_2019_B,file.path(FolderDonnees,"donnees_RPG_2019.gpkg"), driver = "GPKG", append = FALSE)
-saveRDS(data_RPG_2019_B,file.path(FolderSite,"donnees_RPG_2019.rds"))
+saveRDS(data_RPG_2019_B,file.path(FolderFinal,"donnees_RPG_2019.rds"))

@@ -367,4 +367,6 @@ for (i in 1:nrow(data_site)){
 print(i)
 }
 
-
+FolderDonnees = paste("/Users/emihui/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees")
+FolderInter= "2.Donnees_intermediaire"
+saveRDS(data_pay,file.path(FolderDonnees,FolderInter,"data_paysage.rds"))

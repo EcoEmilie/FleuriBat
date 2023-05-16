@@ -80,9 +80,10 @@ dist_eau =c()#Création d'un vecteur pour accueillir la variable
 
 data_haie = st_read(dsn = file.path(Folderpath,FolderCarto,"data_occupation_haie_total.gpkg"))
 
-data_lisiere = bind_rows("foret" = st_cast(data_foret, "MULTILINESTRING"),
-                         "haie" = st_cast(data_haie,"MULTILINESTRING" ),
-                         .id = "Data") 
+
+# #data_lisiere = bind_rows("foret" = st_cast(data_foret, "GEOMETRYCOLLECTION"),
+#                          "haie" = st_cast(data_haie,'GEOMETRYCOLLECTION' ),
+#                          .id = "Data") 
 
 # raster_haie = rast("raster_haie.tif")
 
@@ -92,11 +93,6 @@ lisiere_density= c()
 ### Route -------------------------------------------------------------
 
 data_route = st_read(dsn = file.path(Folderpath,FolderCarto,"data_route_total.gpkg"))
-
-### Bande -------------------------------------------------------------
-
-data_bande = st_read(dsn = file.path(Folderpath,FolderCarto,"bandes_fleuries_modif.shp")) 
-st_crs(data_bande)= 2154
 
 
 ### RPG ----------------------------------------------------
@@ -126,13 +122,13 @@ nb_parcelle= c()
 
 ##Diversité raster
 #2019
-Div_2019 = rast( file.path(Folderpath,FolderCarto,"RASTERS/RPG_2019_DIV.tif"))
+Div_2019 = rast( file.path(FolderRDS, "donnees_RPG_2019.tif"))
 
 #2020 
-Div_2020 = rast(file.path(Folderpath,FolderCarto,"RASTERS/RPG_2020_DIV.tif"))
+Div_2020 = rast( file.path(FolderRDS, "donnees_RPG_2020.tif"))
 
 #2021 
-Div_2021 = rast(file.path(Folderpath,FolderCarto,"RASTERS/RPG_2021_DIV.tif"))
+Div_2021 = rast( file.path(FolderRDS, "donnees_RPG_2021.tif"))
 
 i = data_frame()
 
@@ -208,7 +204,7 @@ buffer = c(100,500,1000,2000)
 
 #selection de la ligne 
 for (i in 1:nrow(data_site)){
-  names_year = data_site[i,c("Carre_Point_vigiechiro","year","Modalite_protocole", "geometry")]
+  names_year = data_site[i,c("carre_year_pass","year","Modalite_protocole", "geometry")]
   
   ##Distance aux zones urbaines ----
   dist_habitation = st_distance(names_year, data_habitation, by_element = FALSE) %>% 
@@ -225,12 +221,6 @@ for (i in 1:nrow(data_site)){
   ##Distance à la haie ----
   dist_haie = st_distance(names_year, data_haie, by_element = FALSE) %>% 
     min()
-  
-  ##Surface bande ----
-  a = if(names_year$Modalite_protocole == "bande"){
-    st_intersection(data_bande,st_buffer(names_year,dist = 100))
-  }else{data.frame()}
-  bande_area = c(ifelse(nrow(a) == 0, 0,st_area(a$geom)))
   
   for (j in 1:length(buffer)){
     
@@ -268,15 +258,18 @@ for (i in 1:nrow(data_site)){
     
     ## Surface/moyenne/perimetre agricole ----
     
-    a = if(b$year == 2019){st_intersection(RPG_2019 , b)}else if(b$year==2020){st_intersection(RPG_2020 , b)} else{st_intersection(RPG_2021 , b)}
-    a = a  %>% 
+    a = if(b$year == 2019){st_intersects(RPG_2019 , b)}else if(b$year==2020){st_intersects(RPG_2020 , b)} else{st_intersects(RPG_2021 , b)}
+    a <- (a %>% as.data.frame())$row.id 
+    if(b$year == 2019){site_int <- RPG_2019[a,]}else if(b$year==2020){site_int <- RPG_2020[a,]} else{site_int <- RPG_2021[a,]}
+    
+    site_int = site_int  %>% 
       mutate(area = st_area(geometry), perimeter = st_perimeter(geometry))%>% 
       distinct() %>% 
       add_tally(name = "n")
     
-    moy_area_agri = c(ifelse(nrow(a) == 0, 0, mean(a$area * 10000)))
-    perimeter_agri = c(ifelse(nrow(a) == 0, 0, mean(a$perimeter)))
-    nb_parcelle =  c(ifelse(nrow(a) == 0, 0, a$n[1]))
+    moy_area_agri = c(ifelse(nrow(site_int) == 0, 0, mean(site_int$area / 10000)))
+    perimeter_agri = c(ifelse(nrow(site_int) == 0, 0, mean(site_int$perimeter)))
+    nb_parcelle =  c(ifelse(nrow(site_int) == 0, 0, site_int$n[1]))
     
     ## Surface culture ----
     a = if(b$year == 2019){st_intersection(RPG_cultu_2019 , b)}else if(b$year==2020){st_intersection(RPG_cultu_2020 , b)} else{st_intersection(RPG_cultu_2021 , b)}
@@ -327,10 +320,10 @@ for (i in 1:nrow(data_site)){
 
 
     ##Densité de lisière ----
-    a = st_intersection(data_lisiere, b) %>%
-      mutate(longueur = st_length(geom))
-    lisiere_density = c(ifelse(nrow(a) == 0, 0,(sum(a$longueur)/buffer_area) * 10000))
-    
+    # a = st_intersection(data_lisiere, b) %>%
+    #   mutate(longueur = st_length(geom))
+    # lisiere_density = c(ifelse(nrow(a) == 0, 0,(sum(a$longueur)/buffer_area) * 10000))
+    # 
 
     
     ## !!! collage dans le vecteur ----
@@ -342,7 +335,6 @@ for (i in 1:nrow(data_site)){
                         dist_foret, 
                         dist_eau,
                         dist_haie,
-                        bande_area,
                         area_foret,
                         area_habitation,
                         area_agri,
@@ -354,7 +346,7 @@ for (i in 1:nrow(data_site)){
                         perimeter_agri,
                         haie_density,
                         route_density,
-                        lisiere_density,
+                        #lisiere_density,
                         nb_parcelle,
                         Shannon_naturel = Shannon_naturel$value,
                         Shannon_cultu = Shannon_cultu$value)
@@ -370,3 +362,7 @@ print(i)
 FolderDonnees = paste("/Users/emihui/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees")
 FolderInter= "2.Donnees_intermediaire"
 saveRDS(data_pay,file.path(FolderDonnees,FolderInter,"data_paysage.rds"))
+st_write(data_pay, file.path(FolderDonnees,FolderInter,"data_paysage.gpkg"), driver = "GPKG", append = FALSE)
+st_write(data_site, file.path(FolderDonnees,FolderInter,"data_site.gpkg"), driver = "GPKG", append = FALSE)
+ 
+

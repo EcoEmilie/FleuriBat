@@ -22,30 +22,34 @@ FolderSortie = "3.Sorties"
 Releve_bota = read.csv2(file.path(FolderDonnees,FolderSources, Bande, "Releve_bota_bandes.csv"),  sep = ";", dec = ",") 
 
 Releve_bota_modif = Releve_bota %>% 
-  mutate(recouvrement = str_replace(recouvrement,",", ".")) %>% 
+  mutate(recouvrement = str_replace(recouvrement,"e", "0,1"),
+         recouvrement = str_replace(recouvrement,",", ".")) %>% 
   mutate(recouvrement = as.numeric(recouvrement),
          bande = as.factor(bande),
          annee = as.factor(annee),
          seme = as.factor(seme))
 
-Releve_NA = Releve_bota %>% 
-  filter(recouvrement == "NA")
+Releve_NA = Releve_bota_modif %>% 
+  filter(is.na(recouvrement))
 
-Richesse_spe = Releve_bota %>% 
+Richesse_spe = Releve_bota_modif %>% 
   group_by(annee,bande) %>% 
-  summary()
+  tally()
 
-Semee_spont = Releve_bota %>% 
+Semee_spont = Releve_bota_modif %>% 
   group_by(annee,bande, seme) %>% 
   tally()
 
-Bande_Shanon = Releve_bota %>% 
+Bande_Shanon = Releve_bota_modif %>% 
+  filter(!is.na(recouvrement)) %>% 
   group_by(annee,bande) %>% 
   mutate(Indi_Shannon = - sum((recouvrement/sum(recouvrement))*log(recouvrement/sum(recouvrement)))) %>% 
   select(bande,annee,Indi_Shannon) %>% 
   distinct()
 
+
 # Ecriture ----------------------------------------------------------------
 
-saveRDS(Releve_bota, file.path(FolderDonnees, FolderInter, "Releve_bota.rds"))
+saveRDS(Releve_bota_modif, file.path(FolderDonnees, FolderInter, "Releve_bota.rds"))
 saveRDS(Richesse_spe, file.path(FolderDonnees, FolderInter, "Richesse_spe_bande.rds"))
+saveRDS(Bande_Shanon, file.path(FolderDonnees, FolderInter, "Div_Plante_Shannon.rds"))

@@ -44,8 +44,17 @@ Bande_Shanon = Releve_bota_modif %>%
   filter(!is.na(recouvrement)) %>% 
   group_by(annee,bande) %>% 
   mutate(Indi_Shannon = - sum((recouvrement/sum(recouvrement))*log(recouvrement/sum(recouvrement)))) %>% 
-  select(bande,annee,Indi_Shannon) %>% 
-  distinct()
+  group_by(annee,bande, seme) %>% 
+  mutate(Indi_seme_Shannon = - sum((recouvrement/sum(recouvrement))*log(recouvrement/sum(recouvrement)))) %>%
+  ungroup() %>% 
+  select(bande,annee, seme, Indi_Shannon, Indi_seme_Shannon) %>% 
+  distinct() %>% 
+  mutate(bande = str_to_upper(bande)) %>% 
+  arrange(by_groupe = bande) %>% 
+  filter(!annee == "2022") %>% 
+  mutate(bande = str_replace(bande," ","_")) %>% 
+  mutate(bande = str_replace(bande,"È","E")) %>% 
+  mutate(bande = str_replace(bande,"É","E"))
 
 
 # Ecriture ----------------------------------------------------------------

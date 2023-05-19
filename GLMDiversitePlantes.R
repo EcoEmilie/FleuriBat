@@ -29,7 +29,7 @@ data_site = readRDS(file.path(FolderDonnees,FolderInter, "data_site.rds")) %>%
   filter(Modalite_protocole == "bande")
 
 data_contact = left_join(data_site, data_chiro) %>% 
-  select(carre_year_pass, Modalite_protocole, year, Num_passag, Commune) %>% 
+  select(carre_year_pass, year, Modalite_protocole,  Num_passag, Commune) %>% 
   group_by(carre_year_pass) %>% 
   add_tally(name = "sum_contact") %>% 
   distinct() 

@@ -7,6 +7,7 @@
 # Auteur : Emilie
 # Date : 21/04/2023
 
+rm(list=ls())
 
 # Library -----------------------------------------------------------------
 
@@ -15,7 +16,9 @@ library(tidyverse)
 
 # Chargement data ---------------------------------------------------------
 
-Folderpath = paste("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees")
+FolderDonnees = paste("/Users/emihui/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees")
+FolderInter= "2.Donnees_intermediaire"
+FolderSortie = "3.Sorties"
 
 
 # Modification ------------------------------------------------------------
@@ -28,9 +31,23 @@ data_site = read.csv(file = file.path(Folderpath,"1.Donnees_sources", "Chiroptè
          year = as.factor(year),
          Modalite_protocole = as.factor(Modalite_protocole)) %>%
   unite(Mod_pass, Modalite_protocole, Num_passag, sep = "_", remove = FALSE) %>%  
-  rename( carre_year_pass= carre_year.1) 
+  rename( carre_year_pass = carre_year.1) %>% 
+  mutate(Commune = str_replace(Commune,"MEZIERES_BROUE_1","GERMAINVILLE_OUEST"),
+         Commune = str_replace(Commune,"MEZIERES_BROUE_2","GERMAINVILLE_EST" ),
+         Commune = str_replace(Commune,"MEZIERE-EN-DROUAIS", "MEZIERE"))
+
+data_lol = data_site %>% 
+  filter(year == "2020" & Commune == "GERMAINVILLE") %>% 
+  mutate(Commune = str_replace(Commune,"GERMAINVILLE", "GERMAINVILLE_OUEST"))
+
+data_lool = data_site %>% 
+  filter(year == "2021" & Commune == "GERMAINVILLE") %>% 
+  mutate(Commune = str_replace(Commune,"GERMAINVILLE", "GERMAINVILLE_EST"))
+
+data_site = bind_rows(data_site, data_lol, data_lool) %>% 
+  filter(!Commune == "GERMAINVILLE")
 
 # Ecriture ----------------------------------------------------------------
 
-saveRDS(data_site, file = (file.path(Folderpath,"2.Donnees_intermediaire", "data_site.rds")))
+saveRDS(data_site, file = (file.path(FolderDonnees,FolderInter, "data_site.rds")))
 

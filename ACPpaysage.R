@@ -22,23 +22,26 @@ FolderSortie = "3.Sorties"
 col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
 
 data_paysage = readRDS(file.path(FolderDonnees,FolderInter, "data_paysage.rds")) %>% 
-  mutate(dist_buffer = as.factor(dist_buffer))
+  mutate(dist_buffer = as.factor(dist_buffer)) %>% 
+  filter(!Modalite_protocole == "exclos") %>% 
+  st_drop_geometry()
 
 # 100 m  ------------------------------------------------------------------
 
 ## Matrice de corrélation  -------------------------------------------------
 
 data_paysage_100 = data_paysage %>% 
-  st_drop_geometry() %>% 
   filter(dist_buffer == "100") %>% 
-  select(!Shannon_naturel) 
+  distinct() %>% 
+  select(!Shannon_naturel)%>% 
+  remove_rownames() %>% 
+  column_to_rownames(var = "carre_year_pass") 
 
-data_paysage_100_corr = data_paysage_100 %>% 
+data_paysage_100 %>% 
+  mutate_if(is.numeric, scale) %>% 
   select_if(is.numeric) %>% 
-  cor()
-
-
-corr_graph = corrplot(data_paysage_100_corr, method="color", col=col(200),  
+  cor() %>% 
+  corrplot( method="color", col=col(200),  
          type="upper", order="hclust", 
          addCoef.col = "black", # Ajout du coefficient de corrélation
          tl.col="black", tl.srt=45, #Rotation des etiquettes de textes
@@ -94,10 +97,25 @@ fviz_pca_var(resultat_acp_100,
 ggsave(file.path(FolderDonnees,FolderSortie,"ACP_100_CP2_3.png"), device = "png")
 
 #Représentation avec le traitement
-fviz_pca_ind(resultat_acp_100,
-             geom = "point",
-             col.ind = data_paysage$Modalite_protocole,
-             axes = c(1,2))
+fviz_pca_biplot(resultat_acp_100,
+                label = "var",
+                axes = c(1,2),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_100_CP1_2.png"), device = "png")
+
+fviz_pca_biplot(resultat_acp_100,
+                label = "var",
+                axes = c(1,3),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_100_CP1_3.png"), device = "png")
+
+
+fviz_pca_biplot(resultat_acp_100,
+                label = "var",
+                axes = c(2,3),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_100_CP2_3.png"), device = "png")
+
 
 # Contribution 
 resultat_acp_100 <- dimdesc(resultat_acp_100, axes = c(1,2), proba = 0.05)
@@ -113,21 +131,22 @@ resultat_acp_100$Dim.2
 ## Matrice de corrélation  -------------------------------------------------
 
 data_paysage_500 = data_paysage %>% 
-  st_drop_geometry() %>% 
   filter(dist_buffer == "500") %>% 
-  select(!Shannon_naturel) 
+  distinct() %>% 
+  select(!Shannon_naturel)%>% 
+  remove_rownames() %>% 
+  column_to_rownames(var = "carre_year_pass") 
 
 data_paysage_500_corr = data_paysage_500 %>% 
   select_if(is.numeric) %>% 
-  cor()
-
-corr_graph = corrplot(data_paysage_500_corr, method="color", col=col(200),  
-                      type="upper", order="hclust", 
-                      addCoef.col = "black", # Ajout du coefficient de corrélation
-                      tl.col="black", tl.srt=45, #Rotation des etiquettes de textes
-                      # Combiner avec le niveau de significativité
-                      diag=FALSE 
-)
+  cor()%>% 
+  corrplot( method="color", col=col(200),  
+            type="upper", order="hclust", 
+            addCoef.col = "black", # Ajout du coefficient de corrélation
+            tl.col="black", tl.srt=45, #Rotation des etiquettes de textes
+            # Combiner avec le niveau de significativité
+            diag=FALSE 
+  )
 ggsave(file.path(FolderDonnees,FolderSortie,"corr_paysage_500.png"),device = "png" )
 
 ## ACP ---------------------------------------------------------------------
@@ -156,7 +175,8 @@ fviz_eig(resultat_acp_500)
 
 #CP1 x CP2
 fviz_pca_var(resultat_acp_500,
-             axes = c(1, 2))
+             axes = c(1, 2),
+             repel = TRUE)
 
 ggsave(file.path(FolderDonnees,FolderSortie,"ACP_500_CP1_2.png"), device = "png")
 
@@ -172,6 +192,26 @@ fviz_pca_var(resultat_acp_500,
              repel = TRUE)
 ggsave(file.path(FolderDonnees,FolderSortie,"ACP_500_CP2_3.png"), device = "png")
 
+#Représentation avec le traitement
+fviz_pca_biplot(resultat_acp_500,
+                label = "var",
+                axes = c(1,2),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_500_CP1_2.png"), device = "png")
+
+fviz_pca_biplot(resultat_acp_500,
+                label = "var",
+                axes = c(1,3),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_500_CP1_3.png"), device = "png")
+
+
+fviz_pca_biplot(resultat_acp_500,
+                label = "var",
+                axes = c(2,3),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_500_CP2_3.png"), device = "png")
+
 # Contribution 
 resultat_acp_500 <- dimdesc(resultat_acp_500, axes = c(1,2), proba = 0.05)
 
@@ -186,21 +226,23 @@ resultat_acp_500$Dim.2
 ## Matrice de corrélation  -------------------------------------------------
 
 data_paysage_1000 = data_paysage %>% 
-  st_drop_geometry() %>% 
   filter(dist_buffer == "1000") %>% 
-  select(!Shannon_naturel) 
+  distinct() %>% 
+  select(!Shannon_naturel)%>% 
+  remove_rownames() %>% 
+  column_to_rownames(var = "carre_year_pass") 
 
 data_paysage_1000_corr = data_paysage_1000 %>% 
   select_if(is.numeric) %>% 
-  cor()
+  cor()%>% 
+  corrplot( method="color", col=col(200),  
+            type="upper", order="hclust", 
+            addCoef.col = "black", # Ajout du coefficient de corrélation
+            tl.col="black", tl.srt=45, #Rotation des etiquettes de textes
+            # Combiner avec le niveau de significativité
+            diag=FALSE 
+  )
 
-corr_graph = corrplot(data_paysage_1000_corr, method="color", col=col(200),  
-                      type="upper", order="hclust", 
-                      addCoef.col = "black", # Ajout du coefficient de corrélation
-                      tl.col="black", tl.srt=45, #Rotation des etiquettes de textes
-                      # Combiner avec le niveau de significativité
-                      diag=FALSE 
-)
 ggsave(file.path(FolderDonnees,FolderSortie,"corr_paysage_1000.png"),device = "png" )
 
 ## ACP ---------------------------------------------------------------------
@@ -229,7 +271,8 @@ fviz_eig(resultat_acp_1000)
 
 #CP1 x CP2
 fviz_pca_var(resultat_acp_1000,
-             axes = c(1, 2))
+             axes = c(1, 2),
+             repel = TRUE)
 ggsave(file.path(FolderDonnees,FolderSortie,"ACP_1000_CP1_2.png"), device = "png")
 
 #CP1 x CP3
@@ -245,9 +288,26 @@ fviz_pca_var(resultat_acp_1000,
 ggsave(file.path(FolderDonnees,FolderSortie,"ACP_1000_CP2_3.png"), device = "png")
 
 #Représentation avec le traitement
-fviz_pca_ind(resultat_acp_1000,
-             geom = "point",
-             axes = c(1,2))
+
+fviz_pca_biplot(resultat_acp_1000,
+                label = "var",
+                axes = c(1,2),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_1000_CP1_2.png"), device = "png")
+
+fviz_pca_biplot(resultat_acp_1000,
+                label = "var",
+                axes = c(1,3),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_1000_CP1_3.png"), device = "png")
+
+
+fviz_pca_biplot(resultat_acp_1000,
+                addEllipses = TRUE,
+                label = "var",
+                axes = c(2,3),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_1000_CP2_3.png"), device = "png")
 
 # Contribution 
 resultat_acp_1000 <- dimdesc(resultat_acp_1000, axes = c(1,2), proba = 0.05)
@@ -264,21 +324,22 @@ resultat_acp_1000$Dim.2
 ## Matrice de corrélation  -------------------------------------------------
 
 data_paysage_2000 = data_paysage %>% 
-  st_drop_geometry() %>% 
   filter(dist_buffer == "2000") %>% 
-  select(!Shannon_naturel) 
+  distinct() %>% 
+  select(!Shannon_naturel)%>% 
+  remove_rownames() %>% 
+  column_to_rownames(var = "carre_year_pass")
 
 data_paysage_2000_corr = data_paysage_2000 %>% 
   select_if(is.numeric) %>% 
-  cor()
-
-corr_graph = corrplot(data_paysage_2000_corr, method="color", col=col(200),  
-                      type="upper", order="hclust", 
-                      addCoef.col = "black", # Ajout du coefficient de corrélation
-                      tl.col="black", tl.srt=45, #Rotation des etiquettes de textes
-                      # Combiner avec le niveau de significativité
-                      diag=FALSE 
-)
+  cor()%>% 
+  corrplot( method="color", col=col(200),  
+            type="upper", order="hclust", 
+            addCoef.col = "black", # Ajout du coefficient de corrélation
+            tl.col="black", tl.srt=45, #Rotation des etiquettes de textes
+            # Combiner avec le niveau de significativité
+            diag=FALSE 
+  )
 ggsave(file.path(FolderDonnees,FolderSortie,"corr_paysage_2000.png"),device = "png" )
 
 ## ACP ---------------------------------------------------------------------
@@ -307,7 +368,8 @@ fviz_eig(resultat_acp_2000)
 
 #CP1 x CP2
 fviz_pca_var(resultat_acp_2000,
-             axes = c(1, 2))
+             axes = c(1, 2),
+             repel = TRUE)
 ggsave(file.path(FolderDonnees,FolderSortie,"ACP_2000_CP1_2.png"), device = "png")
 
 #CP1 x CP3
@@ -323,7 +385,24 @@ fviz_pca_var(resultat_acp_2000,
 ggsave(file.path(FolderDonnees,FolderSortie,"ACP_2000_CP2_3.png"), device = "png")
 
 #Représentation avec le traitement
-fviz_pca_ind(resultat_acp_2000)
+fviz_pca_biplot(resultat_acp_2000,
+                label = "var",
+                axes = c(1,2),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_2000_CP1_2.png"), device = "png")
+
+fviz_pca_biplot(resultat_acp_2000,
+                label = "var",
+                axes = c(1,3),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_2000_CP1_3.png"), device = "png")
+
+
+fviz_pca_biplot(resultat_acp_2000,
+                label = "var",
+                axes = c(2,3),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_2000_CP2_3.png"), device = "png")
 
 # Contribution 
 resultat_acp_2000 <- dimdesc(resultat_acp_2000, axes = c(1,2), proba = 0.05)
@@ -333,4 +412,5 @@ resultat_acp_2000$Dim.1
 
 # Description de la dimension 2
 resultat_acp_2000$Dim.2
+
 

@@ -27,36 +27,45 @@ Releve_bota_modif = Releve_bota %>%
   mutate(recouvrement = as.numeric(recouvrement),
          bande = as.factor(bande),
          annee = as.factor(annee),
-         seme = as.factor(seme))
+         seme = as.factor(seme)) %>% 
+  rename (year = annee)
 
 Releve_NA = Releve_bota_modif %>% 
   filter(is.na(recouvrement))
 
 Richesse_spe = Releve_bota_modif %>% 
-  group_by(annee,bande) %>% 
+  group_by(year,bande) %>% 
   tally()
 
 Semee_spont = Releve_bota_modif %>% 
-  group_by(annee,bande, seme) %>% 
+  group_by(year,bande, seme) %>% 
   tally()
 
 Bande_Shanon = Releve_bota_modif %>% 
   filter(!is.na(recouvrement)) %>% 
+  mutate(bande = str_to_upper(bande))%>% 
   mutate(bande = str_replace(bande," ","_")) %>% 
   mutate(bande = str_replace(bande,"È","E")) %>% 
   mutate(bande = str_replace(bande,"É","E"),
-         bande = str_replace(bande, "CHATELIERS","LES_CHATELIERS")) %>% 
+         bande = str_replace(bande, "CHATELIERS","LES_CHATELIERS"),
+         bande = str_replace(bande, "SONCHAMP_COIN_DU_BOIS", "SONCHAMP_2"),
+         bande = str_replace(bande,"SONCHAMP_NORD_BORD_CHEMIN", "SONCHAMP_1"),
+         bande = str_replace(bande, "VILLENEUVE_NORD", "VILLENEUVE_ST_NICOLAS")) %>% 
   mutate(Commune = bande) %>% 
-  group_by(annee,Commune) %>% 
+  group_by(year,Commune) %>% 
   mutate(Indi_Shannon = - sum((recouvrement/sum(recouvrement))*log(recouvrement/sum(recouvrement)))) %>% 
-  group_by(annee,Commune, seme) %>% 
+  group_by(year,Commune, seme) %>% 
   mutate(Indi_seme_Shannon = - sum((recouvrement/sum(recouvrement))*log(recouvrement/sum(recouvrement)))) %>%
   ungroup() %>% 
-  select(Commune,annee, seme, Indi_Shannon, Indi_seme_Shannon) %>% 
-  distinct() %>% 
-  mutate(Commune = str_to_upper(Commune)) %>% 
+  select(Commune,year, seme, Indi_Shannon, Indi_seme_Shannon) %>% 
+  distinct()  %>% 
   arrange(by_groupe = Commune) %>% 
-  filter(!annee == "2022")
+  filter(!year == "2022") %>% 
+  filter(!Commune == "BAILLY_2") %>% 
+  filter(!Commune == "SERVILLE_1") %>% 
+  filter(!Commune == "SERVILLE_13") %>% 
+  filter(!Commune == "VILLENEUVE_SUD") %>% 
+  filter(!Commune == "SONCHAMP_9 BORD ROUTE FACE CHEMIN POTEAU")
   
 
 

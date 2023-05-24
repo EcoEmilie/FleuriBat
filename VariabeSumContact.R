@@ -8,13 +8,6 @@ rm(list=ls())
 # Library -----------------------------------------------------------------
 
 library(tidyverse)
-library(lme4)
-library(lmerTest) # Pour tests d'effets aléatoires dans le modèle mixte
-library(DHARMa)#QQ plot
-library(glmmTMB)#pour faire des glmmTMB : negative binomiale
-library(performance)#pour calculer le VIF
-library(car)
-
 
 # Données -----------------------------------------------------------------
 FolderDonnees = paste("/Users/emihui/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees")
@@ -24,26 +17,12 @@ FolderSortie = "3.Sorties"
 data_site = readRDS(file.path(FolderDonnees,FolderInter, "data_site.rds"))
 
 data_chiro = readRDS(file.path(FolderDonnees,FolderInter, "data_filtree_seuil08.rds")) %>% 
-  mutate(Commune = str_to_upper(Commune))%>% 
-  mutate(Commune = str_replace(Commune,"MEZIERES_BROUE_1","GERMAINVILLE_OUEST"),
-         Commune = str_replace(Commune,"MEZIERES_BROUE_2","GERMAINVILLE_EST" ),
-         Commune = str_replace(Commune,"MEZIERE-EN-DROUAIS", "MEZIERE"))
-
-data_lol = data_chiro %>% 
-  filter(year == "2020" & Commune == "GERMAINVILLE") %>% 
-  mutate(Commune = str_replace(Commune,"GERMAINVILLE", "GERMAINVILLE_OUEST"))
-
-data_lool = data_chiro %>% 
-  filter(year == "2021" & Commune == "GERMAINVILLE") %>% 
-  mutate(Commune = str_replace(Commune,"GERMAINVILLE", "GERMAINVILLE_EST"))
-
-data_chiro = bind_rows(data_chiro, data_lol, data_lool) %>% 
-  filter(!Commune == "GERMAINVILLE")
+  select(!Commune)
 
 data_agri = readRDS(file.path(FolderDonnees,FolderInter, "SDCChiroall.rds")) %>% 
   rename(carre_year_pass = carre_year.1)
 
-data_total = left_join(data_chiro, data_site) %>% 
+data_total = left_join( data_site,data_chiro) %>% 
   left_join(data_agri)
 
 data_contact = data_total %>% 

@@ -8,24 +8,16 @@ rm(list=ls())
 # Library -----------------------------------------------------------------
 
 library(tidyverse)
-library(lme4)
-library(lmerTest) # Pour tests d'effets aléatoires dans le modèle mixte
-library(DHARMa)#QQ plot
-library(glmmTMB)#pour faire des glmmTMB : negative binomiale
-library(performance)#pour calculer le VIF
-library(car)
-
 
 # Données -----------------------------------------------------------------
 FolderDonnees = paste("/Users/emihui/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees")
 FolderInter= "2.Donnees_intermediaire"
 FolderSortie = "3.Sorties"
 
-data_chiro = readRDS(file.path(FolderDonnees,FolderInter, "data_filtree_seuil08.rds")) 
+data_chiro = readRDS(file.path(FolderDonnees,FolderInter, "data_filtree_seuil08.rds")) %>% 
+  select(!Commune)
 
 data_site = readRDS(file.path(FolderDonnees,FolderInter, "data_site.rds")) 
-
-data_pay = readRDS(file.path(FolderDonnees,FolderInter, "data_paysage.rds")) 
 
 data_agri = readRDS(file.path(FolderDonnees,FolderInter, "SDCChiroall.rds")) %>% 
   rename(carre_year_pass = carre_year.1)

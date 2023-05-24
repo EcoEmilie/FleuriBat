@@ -19,11 +19,12 @@ library(tidyverse)
 FolderDonnees = paste("/Users/emihui/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees")
 FolderInter= "2.Donnees_intermediaire"
 FolderSortie = "3.Sorties"
+FolderSources = "1.Donnees_sources"
 
 
 # Modification ------------------------------------------------------------
 
-data_site = read.csv(file = file.path(Folderpath,"1.Donnees_sources", "Chiroptères", "Sites","site_chiro_19_20_21.csv"), sep = ";", header = TRUE, dec = ",") %>% 
+data_site = read.csv(file = file.path(FolderDonnees,FolderSources, "Chiroptères", "Sites","site_chiro_19_20_21.csv"), sep = ";", header = TRUE, dec = ",") %>% 
   # rename(Commune = X...Commune) %>% #La variable commune est renommé 
   mutate(Commune = str_to_upper(Commune)) %>% 
   mutate(Commune = str_replace_all(Commune," ","_"),
@@ -32,22 +33,43 @@ data_site = read.csv(file = file.path(Folderpath,"1.Donnees_sources", "Chiroptè
          Modalite_protocole = as.factor(Modalite_protocole)) %>%
   unite(Mod_pass, Modalite_protocole, Num_passag, sep = "_", remove = FALSE) %>%  
   rename( carre_year_pass = carre_year.1) %>% 
+mutate(Commune = str_to_upper(Commune))%>% 
   mutate(Commune = str_replace(Commune,"MEZIERES_BROUE_1","GERMAINVILLE_OUEST"),
          Commune = str_replace(Commune,"MEZIERES_BROUE_2","GERMAINVILLE_EST" ),
-         Commune = str_replace(Commune,"MEZIERE-EN-DROUAIS", "MEZIERE"))
+         Commune = str_replace(Commune,"MEZIERE-EN-DROUAIS", "MEZIERE")) %>% 
+  filter(!Commune == "SERVILLE_2") 
 
-data_lol = data_site %>% 
+data_1 = data_site %>% 
   filter(year == "2020" & Commune == "GERMAINVILLE") %>% 
   mutate(Commune = str_replace(Commune,"GERMAINVILLE", "GERMAINVILLE_OUEST"))
 
-data_lool = data_site %>% 
+data_2 = data_site %>% 
   filter(year == "2021" & Commune == "GERMAINVILLE") %>% 
   mutate(Commune = str_replace(Commune,"GERMAINVILLE", "GERMAINVILLE_EST"))
 
-data_site = bind_rows(data_site, data_lol, data_lool) %>% 
-  filter(!Commune == "GERMAINVILLE")
+data_3 = data_site %>% 
+  filter(Carre_Point_vigiechiro == "Car780534_Z1") %>% 
+  mutate(Commune = str_replace(Commune,"SONCHAMP", "SONCHAMP_1"))
+
+data_4 = data_site %>% 
+  filter(Carre_Point_vigiechiro == "Car780542_Z1") %>% 
+  mutate(Commune = str_replace(Commune,"SONCHAMP", "SONCHAMP_2"))
+
+data_6 = data_site %>% 
+  filter(Carre_Point_vigiechiro == "Car910404_Z5") %>%
+  mutate(Commune = str_replace(Commune,"GUILLERVAL", "GUILLERVAL_OUEST"))
+  
+data_7 = data_site %>% 
+  filter(Carre_Point_vigiechiro == "Car910404_Z4") %>%
+  mutate(Commune = str_replace(Commune,"GUILLERVAL", "GUILLERVAL_EST"))
+
+data_site_modif = bind_rows(data_site, data_1, data_2, data_3, data_4, data_6, data_7) %>% 
+  filter(!Commune =="GERMAINVILLE") %>% 
+  filter(!Commune == "SONCHAMP") %>% 
+  filter(!Commune == "GUILLERVAL") %>% 
+  distinct()
 
 # Ecriture ----------------------------------------------------------------
 
-saveRDS(data_site, file = (file.path(FolderDonnees,FolderInter, "data_site.rds")))
+saveRDS(data_site_modif, file = (file.path(FolderDonnees,FolderInter, "data_site.rds")))
 

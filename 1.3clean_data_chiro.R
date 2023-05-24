@@ -3,7 +3,7 @@
 # Auteur : Emilie
 # Date : 21/04/2023
 
-
+rm(list=ls())
 # Library -----------------------------------------------------------------
 
 library(tidyverse)
@@ -11,7 +11,9 @@ library(lubridate)
 
 
 # Chargement donnees ------------------------------------------------------
-Folderpath = paste("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees")
+FolderDonnees = paste("/Users/emihui/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees")
+FolderInter= "2.Donnees_intermediaire"
+FolderSortie = "3.Sorties"
 
 data_brute = readRDS(file = file.path(Folderpath,"2.Donnees_intermediaire","export_fusion.rds"))
 
@@ -24,8 +26,8 @@ data_chiro = data_brute %>%
   mutate(date=ymd(date)) %>% 
   mutate(year = factor(year)) %>% 
   filter(tadarida_taxon %in% list_esp$Esp) %>% #on garde que les CS
-  mutate(tadarida_taxon= factor(tadarida_taxon))
+  mutate(tadarida_taxon= factor(tadarida_taxon)) 
 
 
 ## Fichier RDS -------------------------------------------------------------
-saveRDS(data_chiro, file = file.path(Folderpath,"2.Donnees_intermediaire", "data_chiro.rds"))
+saveRDS(data_chiro, file = file.path(FolderDonnees,FolderInter, "data_chiro.rds"))

@@ -299,6 +299,18 @@ for (i in 1:nrow(data_site)){
     a = st_intersection(data_route, b) %>%
       mutate(longueur = st_length(geom))
     route_density = c(ifelse(nrow(a) == 0, 0,(sum(a$longueur)/buffer_area) * 10000))
+    
+    ##Surface naturel----
+    a = st_intersection(data_naturel , b)
+  
+    area_naturel = c(ifelse(nrow(a) == 0, 0, st_area(st_union(a$geom))* 100/buffer_area)))
+    
+    ##Nombre de classe ----
+    c = a %>% 
+      group_by(Nature) %>% 
+      tally()
+    
+    nb_naturel = c(ifelse(nrow(c) == 0, 0, nrow(c)))
 
     # ##Diversité d'élément semi-naturel/naturel ----
     # a = mask(crop(data_naturel, b_v),b_v)
@@ -327,12 +339,14 @@ for (i in 1:nrow(data_site)){
                         area_prairie,
                         area_praiperm,
                         area_praitemp,
+                        area_naturel,
                         moy_area_agri,
                         perimeter_agri,
                         haie_density,
                         route_density,
                         #lisiere_density,
                         nb_parcelle,
+                        nb_naturel,
                         #Shannon_naturel = Shannon_naturel$value,
                         Shannon_cultu = Shannon_cultu$value
                         )

@@ -26,6 +26,17 @@ data_contact = readRDS(file.path(FolderDonnees,FolderInter, "data_sumcontact.rds
 
 # Graphique ---------------------------------------------------------------
 
+data_contact_resume=data_contact %>% 
+  group_by(Modalite_protocole) %>% 
+  summarise(moy_Modalite=mean(sum_contact))
+
+ggplot(data_contact)+
+  aes(x= sum_contact)+
+  geom_histogram(fill="gray")+
+  facet_grid(~Modalite_protocole)+
+  scale_y_sqrt()+
+  geom_vline(data=data_contact_resume, aes(xintercept=moy_Modalite), linetype=3)
+
 #Annees
 GraphTraitement= ggplot(data_contact)+
   aes(x = Modalite_protocole ,y = sum_contact, fill = year )+
@@ -94,12 +105,14 @@ hist(data_contact$sum_contact)
 # Modèle  -----------------------------------------------------------------
 
 #### GLM mixte ####
-Mod = glmmTMB(sum_contact ~ Num_passag + Modalite_protocole + (1| year/Commune ), 
+Mod = glmmTMB(sum_contact ~ Num_passag + Modalite_protocole + SDC + (1| year/Commune ), 
          data = data_contact,
          family = poisson(link = "log"))
 
 summary(Mod)
 Anova(Mod)
+
+
 
 #Résidus 
 simulationOutput <- simulateResiduals(fittedModel = Mod)
@@ -119,7 +132,7 @@ shap<-shapiro.test(residuals(Mod))
 shap
 
 #R2 
-r2(Mod)
+r.squaredGLMM(Mod)
 
 #VIF
 check_collinearity(Mod) 

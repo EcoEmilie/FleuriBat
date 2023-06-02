@@ -40,7 +40,9 @@ data_naturel = readRDS(file.path(FolderDonnees, FolderInter,"data_naturel.rds"))
 data_site = readRDS(file.path(FolderDonnees,FolderInter, "data_site.rds"))%>% 
   #slice_sample(n = 10) %>% 
   st_as_sf(coords = c("X","Y"), crs = 4326) %>% #au départ en WGS 84
-  st_transform(2154) 
+  st_transform(2154) %>% 
+  filter(!Modalite_protocole == "exclos") 
+  
 
 
 # Varirables --------------------------------------------------------------
@@ -59,12 +61,9 @@ for (i in 1:nrow(data_site)){
     b_v = vect(b)
     buffer_area = st_area(b)
     
-    ##Surface naturel----
-    a = st_intersection(data_naturel , b)%>% 
-      mutate(area = (st_area(geom)* 100)/buffer_area) %>% 
-      distinct() 
-      
-    area_naturel = c(ifelse(nrow(a) == 0, 0, sum(a$area)))
+    a = st_intersection(data_naturel , b)
+    
+    area_naturel = c(ifelse(nrow(a) == 0, 0, st_area(st_union(a$geom))* 100/buffer_area))
     
     ##Nombre de classe ----
     c = a %>% 

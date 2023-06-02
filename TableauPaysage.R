@@ -17,7 +17,7 @@ FolderDonnees = paste("/Users/emihui/Documents sur ordi/Master/Stage_M2_ESE_OFB/
 FolderInter= "2.Donnees_intermediaire"
 FolderSortie = "3.Sorties"
 
-data_paysage = readRDS(file.path(FolderDonnees,FolderInter, "data_paysage_modif.rds")) %>% 
+data_paysage = readRDS(file.path(FolderDonnees,FolderInter, "data_paysage.rds")) %>% 
   mutate(dist_buffer = as.factor(dist_buffer)) %>% 
   filter(!Modalite_protocole == "exclos") %>% 
   st_drop_geometry() %>% 
@@ -35,7 +35,7 @@ data_total = left_join(data_paysage, data_naturel)%>%
 # Tableau Figure ----------------------------------------------------------
 
 data_summary1 = data_total %>% 
-  dplyr::select(!c(carre_year_pass,year, Modalite_protocole, buffer_area, Shannon_naturel)) %>%
+  dplyr::select(!c(carre_year_pass,year, Modalite_protocole, buffer_area)) %>%
   mutate(dist_foret = as.numeric(dist_foret),
          dist_eau = as.numeric(dist_eau), 
          dist_habitation = as.numeric(dist_habitation),
@@ -53,7 +53,7 @@ data_summary1 = data_total %>%
   arrange(Variables)
 
 data_summary2 = data_total %>% 
-  dplyr::select(!c(carre_year_pass,year, Modalite_protocole, buffer_area, Shannon_naturel)) %>%
+  dplyr::select(!c(carre_year_pass,year, Modalite_protocole, buffer_area)) %>%
   mutate(dist_foret = as.numeric(dist_foret),
          dist_eau = as.numeric(dist_eau), 
          dist_habitation = as.numeric(dist_habitation),
@@ -76,11 +76,11 @@ data_summary = bind_rows(data_summary1,data_summary2) %>%
 saveRDS(data_summary, file.path(FolderDonnees, FolderInter, "data_figurePaysage.rds"))
 
 
-pdf(file.path(FolderDonnees,FolderSortie,"TableauSummaryPaysage.pdf"), width = 6, height = 22)
+pdf(file.path(FolderDonnees,FolderSortie,"TableauSummaryPaysage.pdf"), width = 6, height = 18.5)
 grid.table(data_summary)
 dev.off()
 
-png(file.path(FolderDonnees,FolderSortie,"TableauSummaryPaysage.png"), width = 450, height = 1550)
+png(file.path(FolderDonnees,FolderSortie,"TableauSummaryPaysage.png"), width = 450, height = 1350)
 grid.table(data_summary)
 dev.off()
 

@@ -27,13 +27,13 @@ FolderInter= "2.Donnees_intermediaire"
 FolderSortie = "3.Sorties"
 
 data_contact = readRDS(file.path(FolderDonnees, FolderInter, "data_sumcontact.rds")) 
+data_richesse = readRDS(file.path(FolderDonnees, FolderInter, "data_RichesseSpe.rds")) 
 
 col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
 
 data_paysage = readRDS(file.path(FolderDonnees,FolderInter, "data_paysage.rds")) %>% 
   mutate(dist_buffer = as.factor(dist_buffer)) %>% 
-  filter(!Modalite_protocole == "exclos") %>% 
-  dplyr::select(!dist_eau.1) %>% 
+  filter(!Modalite_protocole == "exclos")  %>% 
   st_drop_geometry()
 
 data_naturel = readRDS(file.path(FolderDonnees,FolderInter, "data_varpaysage.rds")) %>% 
@@ -44,7 +44,6 @@ data_naturel = readRDS(file.path(FolderDonnees,FolderInter, "data_varpaysage.rds
 data_paysage_2000 = left_join(data_paysage,data_naturel) %>% 
   filter(dist_buffer == "2000") %>% 
   distinct() %>% 
-  dplyr::select(!Shannon_naturel)%>% 
   remove_rownames() %>% 
   column_to_rownames(var = "carre_year_pass")  %>%
   select_if(is.numeric) %>% 
@@ -123,20 +122,20 @@ fviz_pca_biplot(resultat_acp_2000,
                 label = "var",
                 axes = c(1,2),
                 repel = TRUE)
-ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_2000_CP1_2.png"), device = "png")
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_2000_CP1_2.png"), device = "png", width=4, height=7)
 
 fviz_pca_biplot(resultat_acp_2000,
                 label = "var",
                 axes = c(1,3),
                 repel = TRUE)
-ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_2000_CP1_3.png"), device = "png")
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_2000_CP1_3.png"), device = "png", width=4, height=7)
 
 
 fviz_pca_biplot(resultat_acp_2000,
                 label = "var",
                 axes = c(2,3),
                 repel = TRUE)
-ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_2000_CP2_3.png"), device = "png")
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_2000_CP2_3.png"), device = "png", width=4, height=7)
 
 # Contribution 
 resultat_acp_2000_A <- dimdesc(resultat_acp_2000, axes = c(1,2), proba = 0.05)
@@ -144,23 +143,27 @@ resultat_acp_2000_B <- dimdesc(resultat_acp_2000, axes = c(1,3), proba = 0.05)
 
 
 # Description de la dimension 1
-resultat_acp_2000_A$Dim.1 # area_prairie  
+resultat_acp_2000_A$Dim.1 # area_agri,area_prairie, area_praiperm  
 
 # Description de la dimension 2
-resultat_acp_2000_A$Dim.2 # nb_parcelle, moy_area_agri
+resultat_acp_2000_A$Dim.2 # nb_parcelle, dist_foret, Shannon_cultu
 
 # Description de la dimension 3
-resultat_acp_2000_B$Dim.3 #area_BIO
+resultat_acp_2000_B$Dim.3 #Shannon_cultu,area_BIO,moy_area_agri
 
 
 # Données -----------------------------------------------------------------
 
 data_paysage_2000 = data_paysage_2000 %>% 
+  mutate_if(is.numeric,scale) %>% 
   rownames_to_column(var = "carre_year_pass")
 
 data_mod = left_join(data_contact, data_paysage_2000)
 
-summary(data_mod)
+data_mod_spe = left_join(data_richesse, data_paysage_2000) %>% 
+  column_to_rownames(var = "carre_year_pass") %>% 
+  drop_na() %>% 
+  mutate(Commune = as.factor(Commune)) 
 
 # Modèle  -----------------------------------------------------------------
 
@@ -168,20 +171,14 @@ summary(data_mod)
 
 
 
-#####GLM mixte + Commune #####
+##### GLM mixte : Nombre de contact #####
 
-Mod = glmmTMB(sum_contact ~ Num_passag + area_prairie + nb_parcelle + area_BIO +
+Mod = glmmTMB(sum_contact ~ Num_passag + Modalite_protocole + SDC + area_agri + nb_parcelle + Shannon_cultu +
                 (1| year/Commune),
               data = data_mod,
-              family = poisson(link = "log")) #Dispersion test significatif
+              family = nbinom1(link = "log")) #DHARMA significatif 
 
-Mod = glmer.nb(sum_contact ~ Num_passag + Modalite_protocole + area_prairie + nb_parcelle + area_BIO +
-                (1| year/Commune),
-              data = data_mod) #Dharma ok
 
-Mod = glmer.nb(sum_contact ~ Num_passag + area_prairie + nb_parcelle + area_BIO +
-                 (1| year/Commune),
-               data = data_mod) #Dharma ok
 
 summary(Mod)
 Anova(Mod)
@@ -214,3 +211,39 @@ r.squaredGLMM(Mod)
 #VIF
 check_collinearity(Mod) 
 
+##### GLM mixte : Richesse spécifique #####
+
+Mod = lmer(Richesse_spe ~ Num_passag + Modalite_protocole + SDC + area_agri + nb_parcelle + Shannon_cultu +
+                (1| year/Commune),
+              data = data_mod_spe) 
+
+summary(Mod)
+Anova(Mod)
+
+#Résidus 
+simulationOutput <- simulateResiduals(fittedModel = Mod)
+plot(simulationOutput)
+
+png(file.path(FolderDonnees,FolderSortie,"DHARMAPaysage2000mRichesseSpe.png"),
+    width=1200, height=700)
+plot(simulationOutput) 
+dev.off()
+
+
+#Dispersion des résidus 
+testDispersion(simulationOutput)
+hist(residuals(Mod))
+
+sim <- simulateResiduals(Mod, n=99)
+testDispersion(sim)
+
+#shapiro test
+hist(residuals(Mod))
+shap<-shapiro.test(residuals(Mod))
+shap
+
+#R2 
+r.squaredGLMM(Mod)
+
+#VIF
+check_collinearity(Mod) 

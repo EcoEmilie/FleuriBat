@@ -26,13 +26,13 @@ FolderInter= "2.Donnees_intermediaire"
 FolderSortie = "3.Sorties"
 
 data_contact = readRDS(file.path(FolderDonnees, FolderInter, "data_sumcontact.rds")) 
+data_richesse = readRDS(file.path(FolderDonnees, FolderInter, "data_RichesseSpe.rds")) 
 
 col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
 
 data_paysage = readRDS(file.path(FolderDonnees,FolderInter, "data_paysage.rds")) %>% 
   mutate(dist_buffer = as.factor(dist_buffer)) %>% 
-  filter(!Modalite_protocole == "exclos") %>% 
-  dplyr::select(!dist_eau.1) %>% 
+  filter(!Modalite_protocole == "exclos")  %>% 
   st_drop_geometry()
 
 data_naturel = readRDS(file.path(FolderDonnees,FolderInter, "data_varpaysage.rds")) %>% 
@@ -42,18 +42,17 @@ data_naturel = readRDS(file.path(FolderDonnees,FolderInter, "data_varpaysage.rds
 
 data_paysage_1000 = left_join(data_paysage,data_naturel) %>% 
   filter(dist_buffer == "1000") %>% 
-  distinct() %>% 
-  dplyr::select(!Shannon_naturel)%>% 
+  distinct()%>% 
   remove_rownames() %>% 
   column_to_rownames(var = "carre_year_pass")  %>%
   select_if(is.numeric) %>% 
   filter(!is.na(nb_naturel))
 
 summary(data_paysage_1000) 
-#area_habitation,area_praiperm,area_praitemp
+#area_habitation,area_praitemp
 
 data_paysage_1000 = data_paysage_1000 %>% 
-  dplyr::select(!c(area_habitation,area_praiperm,area_praitemp))
+  dplyr::select(!c(area_habitation))
 
 # 1000 m  ------------------------------------------------------------------
 
@@ -120,20 +119,20 @@ fviz_pca_biplot(resultat_acp_1000,
                 label = "var",
                 axes = c(1,2),
                 repel = TRUE)
-ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_1000_CP1_2.png"), device = "png")
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_1000_CP1_2.png"), device = "png", width=4, height=7)
 
 fviz_pca_biplot(resultat_acp_1000,
                 label = "var",
                 axes = c(1,3),
                 repel = TRUE)
-ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_1000_CP1_3.png"), device = "png")
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_1000_CP1_3.png"), device = "png", width=4, height=7)
 
 
 fviz_pca_biplot(resultat_acp_1000,
                 label = "var",
                 axes = c(2,3),
                 repel = TRUE)
-ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_1000_CP2_3.png"), device = "png")
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_1000_CP2_3.png"), device = "png", width=4, height=7)
 
 # Contribution 
 resultat_acp_1000_A <- dimdesc(resultat_acp_1000, axes = c(1,2), proba = 0.05)
@@ -141,42 +140,53 @@ resultat_acp_1000_B <- dimdesc(resultat_acp_1000, axes = c(1,3), proba = 0.05)
 
 
 # Description de la dimension 1
-resultat_acp_1000_A$Dim.1 # moy_area_agri  
+resultat_acp_1000_A$Dim.1 # perimeter_agri,area_agri,moy_area_agri,nb_naturel   
 
 # Description de la dimension 2
-resultat_acp_1000_A$Dim.2 # area_agri
+resultat_acp_1000_A$Dim.2 # area_BIO,area_praiperm,area_prairie
 
 # Description de la dimension 3
-resultat_acp_1000_B$Dim.3 #area_BIO
+resultat_acp_1000_B$Dim.3 #nb_parcelle, moy_area_agri, area_BIO
 
-
+hist(data_paysage_1000$area_BIO)
 # Données -----------------------------------------------------------------
 
 data_paysage_1000 = data_paysage_1000 %>% 
+  mutate_if(is.numeric, scale) %>% 
   rownames_to_column(var = "carre_year_pass")
 
 data_mod = left_join(data_contact, data_paysage_1000)
+
+data_mod_spe = left_join(data_richesse, data_paysage_1000) %>% 
+  column_to_rownames(var = "carre_year_pass") %>% 
+  drop_na() %>% 
+  mutate(Commune = as.factor(Commune)) 
+
 
 # Modèle  -----------------------------------------------------------------
 
 #Corrélation 
 
 #####GLM mixte + Commune #####
-Mod = glmmTMB(sum_contact ~ Num_passag + Modalite_protocole + perimeter_agri + nb_parcelle + area_BIO + 
+Mod = glmmTMB(sum_contact ~ Num_passag + Modalite_protocole + SDC + perimeter_agri + nb_parcelle + area_agri +area_BIO + 
                 (1| year/Commune), 
               data = data_mod,
-              family = poisson(link = "log"))#DHARMA ok 
+              family = nbinom1(link = "log"))
 
-Mod1 = glmmTMB(sum_contact ~ Num_passag + perimeter_agri + nb_parcelle + area_BIO + 
-                (1| year/Commune), 
-              data = data_mod,
-              family = poisson(link = "log"))#DHARMA ok 
+# Mod1 = glmmTMB(sum_contact ~ Num_passag + moy_area_agri + area_agri  + area_BIO  +
+#                 (1| year/Commune), 
+#               data = data_mod,
+#               family = poisson(link = "log"))#DHARMA non 
+# 
+# Mod1 = glmer.nb(sum_contact ~ Num_passag + perimeter_agri + Shannon_cultu  + area_BIO + 
+#                  (1| year/Commune), 
+#                data = data_mod)
 
-summary(Mod1)
-Anova(Mod1)
+summary(Mod)
+Anova(Mod)
 
 #Résidus 
-simulationOutput <- simulateResiduals(fittedModel = Mod1)
+simulationOutput <- simulateResiduals(fittedModel = Mod)
 plot(simulationOutput) # ok
 
 png(file.path(FolderDonnees,FolderSortie,"DHARMAPaysage1000mSumContact.png"),
@@ -202,11 +212,10 @@ r.squaredGLMM(Mod)
 #VIF
 check_collinearity(Mod) 
 
-#####GLM mixte: interaction #####
-Mod = glmmTMB(sum_contact ~ Num_passag + Modalite_protocole* moy_area_agri + Modalite_protocole*area_agri + Modalite_protocole*area_BIO +
+#####GLM mixte: Richesse spécifique  #####
+Mod = lmer(Richesse_spe ~ Num_passag + Modalite_protocole + SDC + perimeter_agri + nb_parcelle + area_agri +area_BIO + 
                 (1| year/Commune), 
-              data = data_mod,
-              family = poisson(link = "log"))
+              data = data_mod_spe)
 
 summary(Mod)
 Anova(Mod)
@@ -214,6 +223,11 @@ Anova(Mod)
 #Résidus 
 simulationOutput <- simulateResiduals(fittedModel = Mod)
 plot(simulationOutput) #homogénéisation des variances 
+
+png(file.path(FolderDonnees,FolderSortie,"DHARMAPaysage1000mRichesseSpe.png"),
+    width=1200, height=700)
+plot(simulationOutput) 
+dev.off()
 
 #Dispersion des résidus 
 testDispersion(simulationOutput)
@@ -231,7 +245,7 @@ shap
 r2(Mod)
 
 #VIF
-check_collinearity(Mod) #problème 
+check_collinearity(Mod) 
 
 
 

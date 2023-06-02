@@ -31,6 +31,8 @@ FolderSortie = "3.Sorties"
 
 data_contact = readRDS(file.path(FolderDonnees, FolderInter, "data_sumcontact.rds")) 
 
+data_richesse = readRDS(file.path(FolderDonnees, FolderInter, "data_RichesseSpe.rds")) 
+
 col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
 
 data_paysage = readRDS(file.path(FolderDonnees,FolderInter, "data_paysage.rds")) %>% 
@@ -47,8 +49,7 @@ data_naturel = readRDS(file.path(FolderDonnees,FolderInter, "data_varpaysage.rds
 
 data_paysage_100 = left_join(data_paysage, data_naturel)%>% 
   filter(dist_buffer == "100") %>% 
-  distinct() %>% 
-  dplyr::select(!Shannon_naturel)%>% 
+  distinct()%>% 
   remove_rownames() %>% 
   column_to_rownames(var = "carre_year_pass") %>% 
   filter(!is.na(nb_naturel))
@@ -57,7 +58,7 @@ summary(data_paysage_100)
 #buffer_area,area_foret,area_habitation,area_prairie,area_praiperm,area_praitemp,route_density
 
 data_acp = data_paysage_100 %>% 
-  dplyr::select(!c(buffer_area,area_foret,area_habitation,area_prairie,area_praiperm,area_praitemp,haie_density,route_density))
+  dplyr::select(!c(buffer_area,area_foret,area_habitation,area_prairie,area_praiperm,area_praitemp,haie_density,route_density, area_naturel, nb_naturel, area_BIO))
   
 
 
@@ -129,20 +130,20 @@ fviz_pca_biplot(resultat_acp_100,
                 label = "var",
                 axes = c(1,2),
                 repel = TRUE)
-ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_100_CP1_2.png"), device = "png")
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_100_CP1_2.png"), device = "png", width=4, height=7)
 
 fviz_pca_biplot(resultat_acp_100,
                 label = "var",
                 axes = c(1,3),
                 repel = TRUE)
-ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_100_CP1_3.png"), device = "png")
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_100_CP1_3.png"), device = "png",width=4, height=7)
 
 
 fviz_pca_biplot(resultat_acp_100,
                 label = "var",
                 axes = c(2,3),
                 repel = TRUE)
-ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_100_CP2_3.png"), device = "png")
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_100_CP2_3.png"), device = "png",width=4, height=7)
 
 
 # Contribution 
@@ -154,10 +155,10 @@ resultat_acp_100_C <- dimdesc(resultat_acp_100, axes = c(1,4), proba = 0.05)
 resultat_acp_100_A$Dim.1 # perimeter_agri,moy_area_agri,nb_parcelle -> agricole 
 
 # Description de la dimension 2
-resultat_acp_100_A$Dim.2 # dist_foret, dist_haie, Shannon_cultu -> Hetérogénéité 
+resultat_acp_100_A$Dim.2 # dist_foret, dist_eau , dist_haie   
 
 # Description de la dimension 3
-resultat_acp_100_B$Dim.3 #area_agri , dist_eau,   area_naturel -> distance au zone urbaine 
+resultat_acp_100_B$Dim.3 #dist_habitation,  area_agri -> distance au zone urbaine 
 
 
 
@@ -165,16 +166,21 @@ resultat_acp_100_B$Dim.3 #area_agri , dist_eau,   area_naturel -> distance au zo
 # Données -----------------------------------------------------------------
   
 data_acp = data_paysage_100%>% 
-  dplyr :: select(perimeter_agri,moy_area_agri,dist_foret,dist_habitation,dist_eau,area_BIO,Shannon_cultu) %>% 
+  dplyr :: select(perimeter_agri,moy_area_agri,dist_foret,dist_habitation,dist_eau,area_agri,area_BIO) %>% 
   rownames_to_column(var = "carre_year_pass") %>% 
   mutate(dist_foret = as.numeric(dist_foret),
-         dist_habitation = as.numeric(dist_habitation))
+         dist_habitation = as.numeric(dist_habitation))%>% 
+  mutate_if(is.numeric, scale) 
 
 data_mod = left_join(data_contact, data_acp) %>% 
   column_to_rownames(var = "carre_year_pass") %>% 
   drop_na() %>% 
-  mutate(Commune = as.factor(Commune))# %>% 
-  #mutate_if(is.numeric, scale) 
+  mutate(Commune = as.factor(Commune)) 
+
+data_mod_spe = left_join(data_richesse, data_acp) %>% 
+  column_to_rownames(var = "carre_year_pass") %>% 
+  drop_na() %>% 
+  mutate(Commune = as.factor(Commune)) 
 
 
 
@@ -185,17 +191,17 @@ hist(data_mod$dist_foret)
 hist(data_mod$dist_habitation)
 hist(data_mod$sum_contact)
 
-#####GLM poisson : effet simple #####
-Mod = glmmTMB(sum_contact ~ Num_passag + moy_area_agri + Shannon_cultu  + area_BIO + (1| year/Commune), 
-              data = data_mod,
-              family = poisson(link = "log"))
+#####GLM nbinomial SumContact : effet simple #####
+# Mod = glmmTMB(sum_contact ~ Num_passag + Modalite_protocole + moy_area_agri + Shannon_cultu  + area_BIO + (1| year/Commune), 
+#               data = data_mod,
+#               family = poisson(link = "log"))
 
-Mod = glmmTMB(sum_contact ~ Num_passag + moy_area_agri + Shannon_cultu  + area_BIO + (1| year/Commune), 
+Mod = glmmTMB(sum_contact ~ Num_passag + Modalite_protocole + SDC + perimeter_agri + dist_foret  +dist_habitation + (1| year/Commune), 
                   data = data_mod,
-                  family = nbinom1(link = "log"))#probléme d'homogénéité de la variance 
+                  family = nbinom1(link = "log"))
 
-Mod = glmer.nb(log(sum_contact) ~ Num_passag + moy_area_agri + Shannon_cultu + Shannon_cultu + (1| year/Commune),
-              data = data_mod)
+# Mod = glmer.nb(log(sum_contact) ~ Num_passag + moy_area_agri + Shannon_cultu + Shannon_cultu + (1| year/Commune),
+#               data = data_mod)
 
 summary(Mod)
 Anova(Mod)
@@ -228,14 +234,10 @@ r.squaredGLMM(Mod)
 check_collinearity(Mod) 
 
 
-#####GLM poisson : interaction  #####
-Mod = glmer(sum_contact ~ Num_passag + Modalite_protocole* moy_area_agri + Modalite_protocole*dist_foret + Modalite_protocole*dist_habitation +
-                (1| year/Commune), 
-              data = data_mod,
-              family = poisson(link = "log"))
+#####GLM richesse spécifique  : effet simple   #####
 
-
-
+Mod = lmer(Richesse_spe ~ Num_passag + Modalite_protocole + SDC + perimeter_agri + dist_foret  +dist_habitation + (1| year/Commune), 
+              data = data_mod_spe)
 
 summary(Mod)
 Anova(Mod)
@@ -243,6 +245,11 @@ Anova(Mod)
 #Résidus 
 simulationOutput <- simulateResiduals(fittedModel = Mod)
 plot(simulationOutput) #homogéinisation de la variance
+
+png(file.path(FolderDonnees,FolderSortie,"DHARMAPaysage100mRichesseSpe.png"),
+    width=1200, height=700)
+plot(simulationOutput) 
+dev.off()
 
 #Dispersion des résidus 
 testDispersion(simulationOutput)

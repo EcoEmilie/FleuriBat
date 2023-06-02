@@ -303,7 +303,7 @@ for (i in 1:nrow(data_site)){
     ##Surface naturel----
     a = st_intersection(data_naturel , b)
   
-    area_naturel = c(ifelse(nrow(a) == 0, 0, st_area(st_union(a$geom))* 100/buffer_area)))
+    area_naturel = c(ifelse(nrow(a) == 0, 0, st_area(st_union(a$geom))* 100/buffer_area))
     
     ##Nombre de classe ----
     c = a %>% 

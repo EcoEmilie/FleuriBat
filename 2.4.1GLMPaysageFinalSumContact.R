@@ -27,17 +27,26 @@ FolderSortie = "3.Sorties"
 
 data_contact = readRDS(file.path(FolderDonnees, FolderInter, "data_sumcontact.rds")) 
 
+data_naturel = readRDS(file.path(FolderDonnees,FolderInter, "data_varpaysage.rds")) %>% 
+  mutate(dist_buffer = as.factor(dist_buffer))%>% 
+  st_drop_geometry() %>% 
+  as.data.frame()
+
 data_paysage = readRDS(file.path(FolderDonnees,FolderInter, "data_paysage.rds")) %>% 
+  mutate(dist_buffer = as.factor(dist_buffer))%>%
+  left_join(data_naturel) %>% 
   mutate(dist_buffer = as.factor(dist_buffer)) %>% 
   filter(!Modalite_protocole == "exclos") %>% 
   st_drop_geometry() %>% 
   as.data.frame() %>% 
-  mutate_if(is.numeric, scale)
+  mutate_if(is.numeric, scale) 
+
+
 
 
 data_500 = data_paysage %>% 
   filter(dist_buffer == "500") %>% 
-  dplyr::select(carre_year_pass, route_density) %>% 
+  dplyr::select(carre_year_pass, route_density,perimeter_agri, area_naturel, dist_habitation) %>% 
   rename( route_density_500 = route_density)
 
 data_1000 = data_paysage %>% 
@@ -47,22 +56,42 @@ data_1000 = data_paysage %>%
 
 data_2000 = data_paysage %>% 
   filter(dist_buffer == "2000") %>% 
-  dplyr::select(carre_year_pass, area_agri, Shannon_cultu) %>% 
-  rename(area_agri_2000 = area_agri,
+  dplyr::select(carre_year_pass, area_prairie, Shannon_cultu) %>% 
+  rename(area_prairie_2000 = area_prairie,
          Shannon_cultu_2000 = Shannon_cultu)
 
 data_mod = left_join(data_contact, data_500) %>% 
   left_join(data_1000) %>% 
   left_join(data_2000) 
 
+saveRDS(data_mod,file.path(FolderDonnees,FolderInter, "data_mod_final.rds"))
+
+
+
 # Modèle  -----------------------------------------------------------------
 
 
 #####GLM mixte : NOmbre de contact #####
 Mod = glmmTMB(sum_contact ~ Num_passag + route_density_500 + area_BIO_1000 +
-                area_agri_2000 + Shannon_cultu_2000 + Modalite_protocole + SDC + (1| year/Commune), 
+                area_prairie_2000 + Shannon_cultu_2000 + Modalite_protocole + SDC + (1| year/Commune), 
               data = data_mod,
               family = nbinom1(link = "log"))
+
+Mod1 = glmmTMB(sum_contact ~ Num_passag + perimeter_agri*Modalite_protocole +  (1| year/Commune), 
+              data = data_mod,
+              family = nbinom1(link = "log"))
+
+Mod2 = glmmTMB(sum_contact ~ Num_passag + area_naturel*Modalite_protocole + (1| year/Commune), 
+              data = data_mod,
+              family = nbinom1(link = "log"))
+
+Mod3 = glmmTMB(sum_contact ~ Num_passag + dist_habitation*Modalite_protocole +  (1| year/Commune), 
+              data = data_mod,
+              family = nbinom1(link = "log"))
+
+Mod4 = glmmTMB(sum_contact ~ Num_passag + route_density_500*Modalite_protocole +  (1| year/Commune), 
+               data = data_mod,
+               family = nbinom1(link = "log"))
 
 summary(Mod)
 Anova(Mod)

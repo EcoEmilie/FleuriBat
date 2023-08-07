@@ -8,6 +8,7 @@
 # Library  ----------------------------------------------------------------
 
 library(tidyverse)
+library(rlang)
 
 ############DONNEES SYNTHESE D AMANDINE : Tri des espèces par site####################
 rm(list = ls())

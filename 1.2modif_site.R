@@ -63,10 +63,28 @@ data_7 = data_site %>%
   filter(Carre_Point_vigiechiro == "Car910404_Z4") %>%
   mutate(Commune = str_replace(Commune,"GUILLERVAL", "GUILLERVAL_EST"))
 
-data_site_modif = bind_rows(data_site, data_1, data_2, data_3, data_4, data_6, data_7) %>% 
+data_8 = data_site %>% 
+  filter(year == "2020" & Commune == "JANVRY") %>% 
+  mutate(Commune = str_replace(Commune,"JANVRY", "JANVRY_EST"))
+
+data_9 = data_site %>% 
+  filter(year == "2021" & Commune == "JANVRY") %>% 
+  mutate(Commune = str_replace(Commune,"JANVRY", "JANVRY_OUEST"))
+
+data_10 = data_site %>% 
+  filter(year == "2021" & Commune == "MAISSE") %>% 
+  mutate(Commune = str_replace(Commune,"MAISSE", "MAISSE_EST"))
+
+data_11 = data_site %>% 
+  filter(year %in% c("2020","2019") & Commune == "MAISSE") %>% 
+  mutate(Commune = str_replace(Commune,"MAISSE", "MAISSE_OUEST"))
+
+data_site_modif = bind_rows(data_site, data_1, data_2, data_3, data_4, data_6, data_7, data_8,data_9,data_10, data_11) %>% 
   filter(!Commune =="GERMAINVILLE") %>% 
   filter(!Commune == "SONCHAMP") %>% 
   filter(!Commune == "GUILLERVAL") %>% 
+  filter(!Commune == "JANVRY") %>%
+  filter(!Commune == "MAISSE") %>% 
   distinct()
 
 # Ecriture ----------------------------------------------------------------

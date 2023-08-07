@@ -44,7 +44,8 @@ Semee_spont = Releve_bota_modif %>%
 Bande_Shanon = Releve_bota_modif %>% 
   filter(!is.na(recouvrement)) %>% 
   mutate(bande = str_to_upper(bande))%>% 
-  mutate(bande = str_replace(bande," ","_")) %>% 
+  mutate(bande = str_replace(bande," ","_")) %>%  
+  mutate(bande = str_replace(bande,"-","_"))%>%
   mutate(bande = str_replace(bande,"È","E")) %>% 
   mutate(bande = str_replace(bande,"É","E"),
          bande = str_replace(bande, "CHATELIERS","LES_CHATELIERS"),
@@ -54,10 +55,10 @@ Bande_Shanon = Releve_bota_modif %>%
   mutate(Commune = bande) %>% 
   group_by(year,Commune) %>% 
   mutate(Indi_Shannon = - sum((recouvrement/sum(recouvrement))*log(recouvrement/sum(recouvrement)))) %>% 
-  group_by(year,Commune, seme) %>% 
-  mutate(Indi_seme_Shannon = - sum((recouvrement/sum(recouvrement))*log(recouvrement/sum(recouvrement)))) %>%
+  # group_by(year,Commune, seme) %>% 
+  # mutate(Indi_seme_Shannon = - sum((recouvrement/sum(recouvrement))*log(recouvrement/sum(recouvrement)))) %>%
   ungroup() %>% 
-  select(Commune,year, seme, Indi_Shannon, Indi_seme_Shannon) %>% 
+  select(Commune,year, Indi_Shannon) %>% 
   distinct()  %>% 
   arrange(by_groupe = Commune) %>% 
   filter(!year == "2022") %>% 

@@ -87,27 +87,16 @@ GraphTraitementCommune = ggplot(data_contact)+
 GraphTraitementCommune
 ggsave(file.path(FolderDonnees,FolderSortie, "BoxplotTraitementCommune.png"), device = "png")
 
-#BIO
-GraphBIO = ggplot(data_paysage)+
-  aes(x = area_BIO, y = sum_contact , color = dist_buffer)+
-  geom_point()+
-  labs(x = "Pourcentage de BIO", 
-       y = "Nombre de contact",
-       title = "Nombre de contact en fonction le pourcentage de BIO")
-GraphBIO
 
-hist(log(data_paysage$sum_contact))
-hist(data_paysage$dist_foret)
-hist(data_paysage$area_BIO)
-
-hist(data_contact$sum_contact)
 
 # Modèle  -----------------------------------------------------------------
 
 #### GLM mixte ####
-Mod = glmmTMB(sum_contact ~ Num_passag + Modalite_protocole + SDC + (1| year/Commune ), 
+Mod = glmmTMB(sum_contact ~ Num_passag + Modalite_protocole + (1| year/Commune ), 
          data = data_contact,
          family = poisson(link = "log"))
+
+saveRDS(Mod, file.path(FolderDonnees, FolderInter, "Modele_Traitement_Sumcontact.rds"))
 
 summary(Mod)
 Anova(Mod)

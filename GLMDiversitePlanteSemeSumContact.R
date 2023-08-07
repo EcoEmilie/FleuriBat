@@ -1,7 +1,7 @@
-# Titre : GLMDiversitePlanteRichesseSpe
-# But : Modèle GLM sur l'effet de la diversité de plante sur la richesse spécifique 
-# Auteur : Emilie
-# Date : 24.05.2023
+# Titre : GLMDiversitePLanteSemeSumContact
+# But : Modèle avec la diversité de plantes seme dans la bande sur le nombre de contact 
+# Auteur : Emilie PEN
+# Date : 24/05/2023
 
 rm(list=ls())
 
@@ -24,39 +24,38 @@ FolderSortie = "3.Sorties"
 
 data_div = readRDS(file.path(FolderDonnees,FolderInter, "Div_Plante_Shannon.rds")) 
 
-data_richesse = readRDS(file.path(FolderDonnees,FolderInter, "data_RichesseSpe.rds"))
+data_contact = readRDS(file.path(FolderDonnees,FolderInter, "data_sumcontact.rds")) %>% 
+  filter(Modalite_protocole == "bande")
 
-data_total= left_join(data_richesse, data_div) %>% 
+data_total= left_join(data_contact, data_div) %>% 
   filter(!is.na(Indi_Shannon)) %>% 
-  filter(Modalite_protocole == "bande") %>% 
   distinct()
 
 data_Shannon = data_total %>% 
-  select(!c(Indi_seme_Shannon, seme)) %>% 
+  select(!c(Indi_Shannon)) %>% 
+  mutate(seme = as.factor(seme)) %>% 
   distinct()
+
 
 # Graphique ---------------------------------------------------------------
 
 ggplot(data_Shannon)+
-  aes(x = Indi_Shannon, y = Richesse_spe)+ 
+  aes(x = Indi_seme_Shannon, y = sum_contact, color = seme)+ 
   geom_point()+
   geom_smooth(method = "lm")+
   labs(x = "Diversité végétale (Indice de Shannon)",
-       y = "Richesse spécifique",
-       title = "Le richesse spécifique selon la diversité végétale")
+       y = "Nombre de contact",
+       title = "Le nombre de contact selon la diversité végétale")
 
-ggsave(file.path(FolderDonnees,FolderSortie, "RegressionDivPlanteRichesseSpe.png"), device = "png")
+ggsave(file.path(FolderDonnees,FolderSortie, "RegressionDivPlanteSemeSumContact.png"), device = "png")
 
 hist(data_Shannon$Indi_Shannon)
 
+# Modèle  -----------------------------------------------------------------
 
-# Modèle ------------------------------------------------------------------
-
-
-#Lmer 
-
-Mod = lmer(Richesse_spe ~  Num_passag + Indi_Shannon + (1| year/Commune), 
-           data = data_Shannon)
+Mod = glmmTMB(sum_contact ~  Num_passag + seme + Indi_seme_Shannon + (1|year/Commune), 
+              data = data_Shannon,
+              family = poisson(link = "log"))
 
 summary(Mod)
 Anova(Mod)
@@ -65,7 +64,7 @@ Anova(Mod)
 simulationOutput <- simulateResiduals(fittedModel = Mod)
 plot(simulationOutput) 
 
-png(file.path(FolderDonnees,FolderSortie,"DHARMADivPlanteRichesseSpe.png"),
+png(file.path(FolderDonnees,FolderSortie,"DHARMADivPlanteSemeSumContact.png"),
     width=1200, height=700)
 plot(simulationOutput) 
 dev.off()
@@ -83,5 +82,3 @@ r2(Mod)
 
 #VIF
 check_collinearity(Mod) 
-
-

@@ -23,16 +23,11 @@ FolderSortie = "3.Sorties"
 
 data_bande = st_read(dsn = file.path(FolderDonnees,FolderSource,FolderCarto,FolderBande, "bandes_fleuries_modif.shp")) %>% 
   st_transform(2154) %>% 
-  mutate(area = st_area(geometry),
-         perimeter = st_perimeter(geometry)) %>% 
-  st_cast("POINT") %>% 
-  st_cast("MULTILINESTRING")
+  mutate(area = st_area(geometry)) %>% 
+  st_drop_geometry() %>% 
+  rename(Commune = Village) %>% 
+  mutate(Commune = str_to_upper(Commune)) %>% 
+  mutate(Commune = str_replace(Commune,"-","_"))
 
-tmap_mode("view")
-lol = tm_shape(data_bande)+
-  tm_dots(col="red")#fonction pour afficher les points 
-
-lol
-tmap_mode("plot")
-
-
+saveRDS(data_bande,file.path(FolderDonnees,FolderInter,"data_bande.rds"))
+hist(sqrt(data_bande$area))

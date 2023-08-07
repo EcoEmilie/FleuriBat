@@ -24,6 +24,7 @@ col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA")
 data_paysage = readRDS(file.path(FolderDonnees,FolderInter, "data_paysage.rds")) %>% 
   mutate(dist_buffer = as.factor(dist_buffer)) %>% 
   filter(!Modalite_protocole == "exclos") %>% 
+  select(!dist_eau.1) %>% 
   st_drop_geometry()
 
 # 100 m  ------------------------------------------------------------------
@@ -64,7 +65,7 @@ nouveau_tableau <- resultat_acp_100$ind$coord %>%
 nouveau_tableau # Même dimension que le tableau initial
 
 summarise_all(nouveau_tableau, var)
-resultat_acp_100$eig
+resultat_acp_100$eig# On prend 4 composantes principales 
 
 nouveau_tableau %>% 
   cor() %>% # calcul de la matrice de corrélation
@@ -116,15 +117,41 @@ fviz_pca_biplot(resultat_acp_100,
                 repel = TRUE)
 ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_100_CP2_3.png"), device = "png")
 
+fviz_pca_biplot(resultat_acp_100,
+                label = "var",
+                axes = c(1,4),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_100_CP1_4.png"), device = "png")
+
+fviz_pca_biplot(resultat_acp_100,
+                label = "var",
+                axes = c(2,4),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_100_CP2_4.png"), device = "png")
+
+fviz_pca_biplot(resultat_acp_100,
+                label = "var",
+                axes = c(3,4),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_100_CP3_4.png"), device = "png")
+
 
 # Contribution 
-resultat_acp_100 <- dimdesc(resultat_acp_100, axes = c(1,2), proba = 0.05)
+resultat_acp_100_A <- dimdesc(resultat_acp_100, axes = c(1,2), proba = 0.05)
+resultat_acp_100_B <- dimdesc(resultat_acp_100, axes = c(1,3), proba = 0.05)
+resultat_acp_100_C <- dimdesc(resultat_acp_100, axes = c(1,4), proba = 0.05)
 
 # Description de la dimension 1
-resultat_acp_100$Dim.1
+resultat_acp_100_A$Dim.1 # area_prairie 
 
 # Description de la dimension 2
-resultat_acp_100$Dim.2
+resultat_acp_100_A$Dim.2 # area_praitemp
+
+# Description de la dimension 3
+resultat_acp_100_B$Dim.3 #moy_area_agri
+
+# Description de la dimension 4
+resultat_acp_100_C$Dim.4 #area_foret 
 
 # 500 m  ------------------------------------------------------------------
 
@@ -161,7 +188,7 @@ nouveau_tableau <- resultat_acp_500$ind$coord %>%
 nouveau_tableau # Même dimension que le tableau initial
 
 summarise_all(nouveau_tableau, var)
-resultat_acp_500$eig
+resultat_acp_500$eig #4 composantes principales
 
 nouveau_tableau %>% 
   cor() %>% # calcul de la matrice de corrélation
@@ -212,14 +239,40 @@ fviz_pca_biplot(resultat_acp_500,
                 repel = TRUE)
 ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_500_CP2_3.png"), device = "png")
 
+fviz_pca_biplot(resultat_acp_500,
+                label = "var",
+                axes = c(1,4),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_500_CP1_4.png"), device = "png")
+
+fviz_pca_biplot(resultat_acp_500,
+                label = "var",
+                axes = c(2,4),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_500_CP2_4.png"), device = "png")
+
+fviz_pca_biplot(resultat_acp_500,
+                label = "var",
+                axes = c(3,4),
+                repel = TRUE)
+ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_500_CP3_4.png"), device = "png")
+
 # Contribution 
-resultat_acp_500 <- dimdesc(resultat_acp_500, axes = c(1,2), proba = 0.05)
+resultat_acp_500_A <- dimdesc(resultat_acp_500, axes = c(1,2), proba = 0.05)
+resultat_acp_500_B <- dimdesc(resultat_acp_500, axes = c(1,3), proba = 0.05)
+resultat_acp_500_C <- dimdesc(resultat_acp_500, axes = c(1,4), proba = 0.05)
 
 # Description de la dimension 1
-resultat_acp_500$Dim.1
+resultat_acp_500_A$Dim.1 # haie_density  
 
 # Description de la dimension 2
-resultat_acp_500$Dim.2
+resultat_acp_500_A$Dim.2 # nb_parcelle
+
+# Description de la dimension 3
+resultat_acp_500_B$Dim.3 #area_prairie
+
+# Description de la dimension 4
+resultat_acp_500_C$Dim.4 #dist_habitation  
 
 # 1000 m  ------------------------------------------------------------------
 
@@ -257,7 +310,7 @@ nouveau_tableau <- resultat_acp_1000$ind$coord %>%
 nouveau_tableau # Même dimension que le tableau initial
 
 summarise_all(nouveau_tableau, var)
-resultat_acp_1000$eig
+resultat_acp_1000$eig#3 composantes
 
 nouveau_tableau %>% 
   cor() %>% # calcul de la matrice de corrélation
@@ -303,20 +356,25 @@ ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_1000_CP1_3.png"), device = "
 
 
 fviz_pca_biplot(resultat_acp_1000,
-                addEllipses = TRUE,
                 label = "var",
                 axes = c(2,3),
                 repel = TRUE)
 ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_1000_CP2_3.png"), device = "png")
 
 # Contribution 
-resultat_acp_1000 <- dimdesc(resultat_acp_1000, axes = c(1,2), proba = 0.05)
+resultat_acp_1000_A <- dimdesc(resultat_acp_1000, axes = c(1,2), proba = 0.05)
+resultat_acp_1000_B <- dimdesc(resultat_acp_1000, axes = c(1,3), proba = 0.05)
+
 
 # Description de la dimension 1
-resultat_acp_1000$Dim.1
+resultat_acp_1000_A$Dim.1 # perimetre_agri  
 
 # Description de la dimension 2
-resultat_acp_1000$Dim.2
+resultat_acp_1000_A$Dim.2 # nb_parcelle
+
+# Description de la dimension 3
+resultat_acp_1000_B$Dim.3 #area_BIO
+
 
 
 # 2000 m  ------------------------------------------------------------------
@@ -354,7 +412,7 @@ nouveau_tableau <- resultat_acp_2000$ind$coord %>%
 nouveau_tableau # Même dimension que le tableau initial
 
 summarise_all(nouveau_tableau, var)
-resultat_acp_2000$eig
+resultat_acp_2000$eig#3 composantes
 
 nouveau_tableau %>% 
   cor() %>% # calcul de la matrice de corrélation
@@ -405,12 +463,17 @@ fviz_pca_biplot(resultat_acp_2000,
 ggsave(file.path(FolderDonnees,FolderSortie,"ACPind_2000_CP2_3.png"), device = "png")
 
 # Contribution 
-resultat_acp_2000 <- dimdesc(resultat_acp_2000, axes = c(1,2), proba = 0.05)
+resultat_acp_2000_A <- dimdesc(resultat_acp_2000, axes = c(1,2), proba = 0.05)
+resultat_acp_2000_B <- dimdesc(resultat_acp_2000, axes = c(1,3), proba = 0.05)
+
 
 # Description de la dimension 1
-resultat_acp_2000$Dim.1
+resultat_acp_2000_A$Dim.1 # area_prairie  
 
 # Description de la dimension 2
-resultat_acp_2000$Dim.2
+resultat_acp_2000_A$Dim.2 # nb_parcelle
+
+# Description de la dimension 3
+resultat_acp_2000_B$Dim.3 #area_BIO
 
 

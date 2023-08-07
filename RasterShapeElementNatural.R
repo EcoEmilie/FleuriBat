@@ -25,7 +25,7 @@ FolderCarto = "Carto"
 FolderRaster = "RASTERS"
 FolderSite = paste("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees/2.Donnees_intermediaire")
 FolderRDS = paste("~/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees/2.Donnees_intermediaire")
-
+FolderRPG = paste("/Users/emihui/Documents sur ordi/Master/Stage_M2_ESE_OFB/R/Repertoire_donnees/1.Donnees_sources/Cartographie/RPG")
 
 # Site --------------------------------------------------------------------
 data_site = readRDS(file = file.path(FolderSite,"data_site.rds")) %>% 
@@ -81,15 +81,15 @@ data_haie = st_read(dsn = file.path(Folderpath,FolderCarto,"data_occupation_haie
 
 ## Prairie temporaire ----------------------------------------------------
 
-prairie_2021 = st_read(dsn = file.path(Folderpath,FolderCarto,"donnees_RPG_2021.gpkg"))%>% 
+RPG_2021 = st_read(dsn = file.path(FolderRPG,"donnees_RPG_2021.gpkg"))%>% 
   st_transform(2154) 
 
-prairie_temp = prairie_2021%>% 
-  filter(CODE_CULTU == "PTR")%>% 
+RPG_2021_modif = RPG_2021 %>% 
+  filter(!CODE_CULTU %in%  c("PPH", "PRL"))%>% 
   dplyr :: select(geom)
-
-prarie_perm = prairie_2021 %>% 
-  filter(CODE_CULTU == c("PPH","PRL"))%>% 
+  
+prarie_perm = RPG_2021 %>% 
+  filter(CODE_CULTU %in%  c("PPH", "PRL")) %>% 
   dplyr :: select(geom)
 
 ## Élément semi-naturel/naturel  -------------------------------------------
@@ -100,7 +100,7 @@ data_naturel = bind_rows("Feuillu" = data_foret_feuillu,
                          "Conifere" = data_foret_conifere,
                          "Haie" = data_haie,
                          #"Ripisylve" = data_ripisylve,
-                         "prairie_temp" = prairie_temp,
+                         #"RPG" = RPG_2021_modif,
                          "prairie_perm" = prarie_perm,
                          "Plan_eau" = data_plan_eau,
                          "Cours_eau" = data_cours_eau,
@@ -110,6 +110,7 @@ data_naturel1 =   st_intersection(data_naturel, st_buffer(data_site, dist = 4000
   mutate(Nature = as.factor(Nature))
   
 
+
 # Ecriture ----------------------------------------------------------------
 
 #GPKG
@@ -118,10 +119,16 @@ st_write(data_naturel1, dsn = file.path(Folderpath, FolderCarto, "data_naturel.g
 #RDS
 saveRDS(data_naturel1, file = file.path(FolderRDS, "data_naturel.rds"))
 
-# Raster 
-shp = file.path(Folderpath,FolderCarto,"data_naturel.gpkg")
-R = RasterizeFunction(shp, 5, Nature)
-
-writeRaster(R,file = file.path(Folderpath, FolderCarto, FolderRaster, "data_naturel.tif"),overwrite=TRUE)
-#RDS
-saveRDS(R, file = file.path(FolderRDS, "data_naturel_raster.rds"))
+ 
+# # Raster 
+# x = file.path(Folderpath,FolderCarto,"data_naturel.gpkg")
+# 
+# ZONE <- readOGR(x)
+# ZONE$Nature = as.factor(ZONE$Nature)
+# Zproj<-"+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +units=m +no_defs"
+# ZRASTER <- raster(ext=extent( ZONE),res=10,crs=Zproj, vals=NA)
+# R <- rasterize(ZONE, ZRASTER, field=ZONE$Nature)
+# 
+# writeRaster(R,file = file.path(Folderpath, FolderCarto, FolderRaster, "data_naturel.tif"),overwrite=TRUE)
+# #RDS
+# saveRDS(R, file = file.path(FolderRDS, "data_naturel_raster.rds"))

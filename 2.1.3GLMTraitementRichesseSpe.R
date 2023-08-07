@@ -94,7 +94,7 @@ hist(data_richesse$Richesse_spe)
 
 #Lmer 
 
-Mod = lmer(Richesse_spe ~  Num_passag + Modalite_protocole + SDC + (1| year/Commune), 
+Mod = lmer(Richesse_spe ~  Num_passag + Modalite_protocole + (1| year/Commune), 
             data = data_richesse)
 
 summary(Mod)

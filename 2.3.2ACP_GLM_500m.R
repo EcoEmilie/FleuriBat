@@ -53,7 +53,7 @@ summary(data_paysage_500)
 #area_habitation,area_prairie,area_praiperm,area_praitemp
 
 data_paysage_500 = data_paysage_500 %>% 
-  dplyr::select(!c(area_habitation,area_prairie,area_praiperm,area_praitemp))
+  dplyr::select(!c(buffer_area,area_habitation,area_prairie,area_praiperm,area_praitemp))
 
 # 500 m  ------------------------------------------------------------------
 

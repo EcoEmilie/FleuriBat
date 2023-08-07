@@ -4,7 +4,6 @@
 # Date : 23.05.2023
 
 rm(list=ls())
-
 # Library -----------------------------------------------------------------
 
 library(tidyverse)
@@ -15,7 +14,7 @@ FolderInter= "2.Donnees_intermediaire"
 FolderSortie = "3.Sorties"
 
 data_chiro = readRDS(file.path(FolderDonnees,FolderInter, "data_filtree_seuil08.rds")) %>% 
-  select(!Commune)
+  dplyr::select(!Commune)
 
 data_site = readRDS(file.path(FolderDonnees,FolderInter, "data_site.rds")) 
 
@@ -39,5 +38,7 @@ data_richesse = data_total %>%
          Sum_contact_spe = as.numeric(Sum_contact_spe)) %>% 
   dplyr :: select(carre_year_pass, Modalite_protocole,Num_passag, year, Commune, SDC,Richesse_spe ) %>% 
   distinct()
+
+mean(data_richesse$Richesse_spe)
 
 saveRDS(data_richesse, file.path(FolderDonnees,FolderInter, "data_RichesseSpe.rds"))

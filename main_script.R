@@ -21,25 +21,31 @@ source("FunctionDensity.R")
 # 1.Construction des données ------------------------------------------------
 
 ## 1.1 Base Chiroptères -----------------------------------------------------
-source("1.1fusion_export_tadarida.R")
-source("1.2modif_site.R")
-source("1.3clean_data_chiro.R")
-source("1.4variable_nuit.R")
+source("1.1.1fusion_export_tadarida.R")
+source("1.1.2modif_site.R")
+source("1.1.3clean_data_chiro.R")
+source("1.1.4variable_nuit.R")
 #Filtrage des données par Camille 
-source("ChargDonneesFiltrees08Camille.R")
+source("1.1.5ChargDonneesFiltrees08Camille.R")
+source("1.1.6ModifDataChiro08.R")
 
-
-## 1.2 Variables Activité ----------------------------------------------------
-
+## 1.2 Variables Chiro ----------------------------------------------------
+source("1.2.1VariableSumContact.R")
+source("1.2.2VariableRichesseSpe.R")
+source("1.2.3VariableDureeCummulee.R")
 
 ## 1.3 Variables Paysagères --------------------------------------------------
-source("VerifPrarie.R")
-source("ModifRPG.R")
-source("ShapeElementAqua.R")
-source("script_boucle_paysage.R")
+source("1.3.1VerifPrarie.R")
+source("1.3.2ModifRPG.R")
+source("1.3.3ShapeElementAqua.R")
+source("1.3.4RPGraterize.R")
+source("1.3.5RasterShapeElementNatural.R")
+source("1.3.6VariableSemiNaturel.R")
+source("1.3.7script_boucle_paysage.R")
 
 ## 1.4 Variables Bandes ------------------------------------------------------
-
+source("1.4.1VariableBande.R")
+source("1.4.1VariableDivPlante.R")
 
 # 2 Analyses ----------------------------------------------------------------
 
@@ -68,6 +74,9 @@ source("2.4.1GLMPaysageFinalSumContact.R")
 source("2.4.2GLMPaysageFinalRichesseSpe.R")
 
 
+# 3. Figure résultats -----------------------------------------------------
+
+source()
 
 
 

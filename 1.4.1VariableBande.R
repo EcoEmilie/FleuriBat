@@ -1,5 +1,5 @@
 # Titre : VariableBande
-# But : Modèle GLM sur l'effet de sbandes sur les chauves souris 
+# But : Chargement des données sur les bandes et calcule de l'aire + mise en forme de la variable commune 
 # Auteur : Emilie
 # Date : 11.05.2023
 

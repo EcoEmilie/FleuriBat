@@ -1,5 +1,5 @@
 # Titre : main_script 
-# But : le script principale contenant tous les scripts intermédiaires 
+# But : le script principale contenant tous les scripts  
 # Auteur : Emilie
 # Date : 21/04/2023
 
@@ -11,28 +11,29 @@ rm(list=ls())
 setwd("~/Documents sur ordi/Github/FleuriBat")
 
 ## 0.2 Packages ----------------------------------------------------------------
-source("0.Install_package.R")
+source("0.2Install_package.R")#Installer tous les packages pour run les scripts
 
 ## 0.3 Fonctions  ---------------------------------------------------------------
-source("FunctionRasterize.R")
-source("FunctionDensity.R")
+source("0.3.1FunctionRasterize.R")#fonction pour rasteriser les cartes 
+source("0.3.2FunctionDensity.R")#la densité ??? 
 
 
 # 1.Construction des données ------------------------------------------------
 
 ## 1.1 Base Chiroptères -----------------------------------------------------
-source("1.1.1fusion_export_tadarida.R")
-source("1.1.2modif_site.R")
-source("1.1.3clean_data_chiro.R")
-source("1.1.4variable_nuit.R")
+source("1.1.1fusion_export_tadarida.R")#exporter les fichiers qui proviennent de tadarida et les fusionner 
+source("1.1.2modif_site.R")#modification des noms des sites 
+#source("1.1.2EspecesVerifieesParSites.R")#script de Camille que j'arrive pas à faire marcher 
+source("1.1.3clean_data_chiro.R")#filtrage des données pour avoir que les chiro + mise en forme des noms de variables
+source("1.1.4variable_nuit.R")#création de la variable "NUIT"
 #Filtrage des données par Camille 
-source("1.1.5ChargDonneesFiltrees08Camille.R")
-source("1.1.6ModifDataChiro08.R")
+source("1.1.5ChargDonneesFiltrees08Camille.R")#chargement des données filtrées par camille 
+source("1.1.6ModifDataChiro08.R")#Modification des sites 
 
 ## 1.2 Variables Chiro ----------------------------------------------------
-source("1.2.1VariableSumContact.R")
-source("1.2.2VariableRichesseSpe.R")
-source("1.2.3VariableDureeCummulee.R")
+source("1.2.1VariableSumContact.R")#création des variables nombre de contact 
+source("1.2.2VariableRichesseSpe.R")#création de la variable richesse spécifique 
+source("1.2.3VariableDureeCummulee.R")#création de la variable durée cummulée mais pas fini 
 
 ## 1.3 Variables Paysagères --------------------------------------------------
 source("1.3.1VerifPrarie.R")
@@ -76,7 +77,8 @@ source("2.4.2GLMPaysageFinalRichesseSpe.R")
 
 # 3. Figure résultats -----------------------------------------------------
 
-source()
+source("3.1TableauSummaryChiro.R")
+source("3.2TableauPaysage.R")
 
 
 

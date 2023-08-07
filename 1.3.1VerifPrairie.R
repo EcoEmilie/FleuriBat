@@ -1,5 +1,5 @@
 # Titre : VerifPrairieAnnee
-# But : Verifier la diférence de prairie entre les années 
+# But : Vérifier la différence de prairie entre les années 
 # Auteur : Emilie
 # Date : 09/05/2023
 
